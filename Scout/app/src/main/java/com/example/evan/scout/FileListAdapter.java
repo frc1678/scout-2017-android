@@ -161,6 +161,9 @@ public class FileListAdapter extends ArrayAdapter<String> {
         this.sort(new Comparator<String>() {
             @Override
             public int compare(String lhs, String rhs) {
+                return -1*_compare(lhs, rhs);
+            }
+            public int _compare(String lhs, String rhs) {
                 if (lhs.startsWith("UNSENT_")) {
                     if (rhs.startsWith("UNSENT_")) {
                         //both unsent, continue
@@ -168,11 +171,11 @@ public class FileListAdapter extends ArrayAdapter<String> {
                         lhs = lhs.replaceFirst("UNSENT_", "");
                     } else {
                         //lhs greater, return
-                        return -1;
+                        return 1;
                     }
                 } else if (rhs.startsWith("UNSENT_")) {
                     //rhs greater, return
-                    return 1;
+                    return -1;
                 }
                 int lhsNum;
                 int rhsNum;
