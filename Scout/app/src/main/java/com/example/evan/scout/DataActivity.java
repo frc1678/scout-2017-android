@@ -62,7 +62,6 @@ public abstract class DataActivity extends AppCompatActivity {
         setContentView(R.layout.activity_data);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         intent = getIntent();
-        Log.i("matchNumber at 3", getIntent().getIntExtra("matchNumber", -1) + "");
         setTitle("Scout Team " + intent.getIntExtra("teamNumber", -1));
         Drawable actionBarBackgroundColor;
         if (intent.getIntExtra("scoutNumber", -1) < 4) {
