@@ -26,10 +26,6 @@
         </activity>
         <activity android:name=".TeleopActivity" >
         </activity>
-        <activity android:name=".TestDataActivity" >
-        </activity>
-        <activity android:name=".TestTeleActivity" >
-        </activity>
     </application>
 
 </manifest>

@@ -653,7 +653,7 @@ public class MainActivity extends AppCompatActivity {
         }
         fileListAdapter.stopFileObserver();
         //TODO
-        final Intent nextActivity = new Intent(context, TestDataActivity.class)
+        final Intent nextActivity = new Intent(context, AutoActivity.class)
                 .putExtra("matchNumber", matchNumber).putExtra("overridden", overridden)
                 .putExtra("teamNumber", teamNumber).putExtra("scoutName", scoutName).putExtra("scoutNumber", scoutNumber).putExtra("previousData", editJSON);
         if (scoutName == null) {
