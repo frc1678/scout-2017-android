@@ -124,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
         preferences = getSharedPreferences(PREFERENCES_FILE, 0);
         overridden = getIntent().getBooleanExtra("overridden", false);
         matchNumber = getIntent().getIntExtra("matchNumber", -1);
-        Log.i("matchNumber at 1", matchNumber + "");
         //if matchNumber was not passed from a previous activity, load it from hard disk
         if (matchNumber == -1) {
             matchNumber = preferences.getInt("matchNumber", 1);
@@ -137,7 +136,6 @@ public class MainActivity extends AppCompatActivity {
             editor.putInt("matchNumber", matchNumber);
             editor.commit();
         }
-        Log.i("matchNumber at 2", matchNumber + "");
         //scout initials
         scoutName = getIntent().getStringExtra("scoutName");
 
@@ -613,7 +611,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 sendData = null;
             }
-            dataToSend.add(sendData);
+            dataToSend.add(wrapJson(sendData));
         }
         ConnectThread.ConnectThreadData data;
         try {
@@ -652,7 +650,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         fileListAdapter.stopFileObserver();
-        //TODO
         final Intent nextActivity = new Intent(context, AutoActivity.class)
                 .putExtra("matchNumber", matchNumber).putExtra("overridden", overridden)
                 .putExtra("teamNumber", teamNumber).putExtra("scoutName", scoutName).putExtra("scoutNumber", scoutNumber).putExtra("previousData", editJSON);

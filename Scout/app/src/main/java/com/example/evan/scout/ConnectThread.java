@@ -237,7 +237,7 @@ public class ConnectThread extends Thread {
                     toastText("Failed To Close Connection To Super", Toast.LENGTH_LONG, context);
                     return;
                 }
-                if (counter == 2) { //TODO
+                if (counter == 2) {
                     context.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -286,7 +286,7 @@ public class ConnectThread extends Thread {
                     toastText("Failed To Close Connection To Super", Toast.LENGTH_LONG, context);
                     return;
                 }
-                if (counter == 2) { //TODO
+                if (counter == 2) {
                     Log.e("Communications Error", "Repeated Data Send Failure");
                     context.runOnUiThread(new Runnable() {
                         @Override
