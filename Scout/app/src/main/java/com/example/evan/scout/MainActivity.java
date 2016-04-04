@@ -695,4 +695,9 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .show();
     }
+
+
+    public void startLeaderBoard(View view) {
+        startActivity(new Intent(this, LeaderBoardActivity.class));
+    }
 }

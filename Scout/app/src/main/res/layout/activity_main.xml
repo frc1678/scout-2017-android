@@ -12,20 +12,34 @@
         android:layout_width="0dp"
         android:layout_height="fill_parent"
         android:layout_alignParentLeft="true">
-        <EditText
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/matchNumberText"
-            android:text="Q1"
-            android:textSize="40dp"
-            android:textColor="#000000"
-            android:editable="false"/>
+            android:id="@+id/topLayout">
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/matchNumberText"
+                android:text="Q1"
+                android:textSize="40dp"
+                android:textColor="#000000"
+                android:editable="false"
+                android:layout_toLeftOf="@+id/leaderBoardButton"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:id="@+id/leaderBoardButton"
+                android:layout_centerInParent="true"
+                android:text="Rankings"
+                android:onClick="startLeaderBoard"/>
+        </RelativeLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/editID"
             android:orientation="vertical"
-            android:layout_below="@+id/matchNumberText"
+            android:layout_below="@+id/topLayout"
             android:layout_above="@+id/scoutButton">
             <RelativeLayout
                 android:layout_width="match_parent"
