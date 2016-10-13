@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/mainOverride"
+        android:title="Override Schedule"
+        app:showAsAction = "always"/>
+    <item
+        android:title="Get Schedule"
+        android:id="@+id/scheduleButton"
+        app:showAsAction = "ifRoom" />
+    <item
+        android:id="@+id/setScoutIDButton"
+        android:title="Set Scout ID"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/setScoutName"
+        android:title="Set Scout Name"
+        app:showAsAction="ifRoom"/>
+</menu>
