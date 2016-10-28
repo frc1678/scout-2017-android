@@ -24,6 +24,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -86,8 +91,6 @@ public class MainActivity extends AppCompatActivity {
         //see comment on this variable above
         originalEditTextDrawable = findViewById(R.id.teamNumber1Edit).getBackground();
 
-
-
         //get any values received from other activities
         preferences = getSharedPreferences(PREFERENCES_FILE, 0);
         overridden = getIntent().getBooleanExtra("overridden", false);
@@ -124,8 +127,11 @@ public class MainActivity extends AppCompatActivity {
             highlightTeamNumberTexts();
         }
 
-
-
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference nameRef = database.getReference("scouts");
+        nameRef = nameRef.child("scout"+scoutNumber);
+        nameRef = nameRef.child("mostRecentUser");
+        nameRef.setValue(scoutName);
 
         //implement ui stuff
         //set the match number edittext's onclick to open a dialog.  We do this so the screen does not shrink and the user can see what he/she types
