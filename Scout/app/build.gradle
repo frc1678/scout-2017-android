@@ -10,6 +10,8 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
+
     }
     buildTypes {
         release {
@@ -25,4 +27,12 @@ dependencies {
     compile 'com.instabug.library:instabug:2.3.1'
     compile 'com.android.support:appcompat-v7:23.1.0'
     compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.google.firebase:firebase-database:9.4.0'
+    compile 'com.google.firebase:firebase-auth:9.4.0'
+    compile 'com.google.firebase:firebase-config:9.4.0'
+    compile 'com.google.firebase:firebase-messaging:9.4.0'
+    compile 'com.google.firebase:firebase-crash:9.4.0'
+    compile 'com.google.firebase:firebase-analytics:9.4.0'
+
 }
+apply plugin: 'com.google.gms.google-services'

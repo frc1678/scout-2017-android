@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "153219638647",
+    "firebase_url": "https://scout-rotator.firebaseio.com",
+    "project_id": "scout-rotator",
+    "storage_bucket": "scout-rotator.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:153219638647:android:484daee56380f52f",
+        "android_client_info": {
+          "package_name": "com.example.evan.scout"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "153219638647-a70dg2326lofe5du28p2b9qk1plojb9a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCRdCOl-OZxAYrxQ92rpJuqlsmjhSSNz4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

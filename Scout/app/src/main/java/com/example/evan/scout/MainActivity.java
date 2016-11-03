@@ -24,10 +24,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -73,8 +77,8 @@ public class MainActivity extends AppCompatActivity {
     //save a reference to this activity for subclasses
     private final MainActivity context = this;
 
-
-
+    FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference myRef = database.getReference();
 
 
     @Override
@@ -124,8 +128,7 @@ public class MainActivity extends AppCompatActivity {
             highlightTeamNumberTexts();
         }
 
-
-
+        myRef.child("currentScouts").child(scoutName).setValue(1);
 
         //implement ui stuff
         //set the match number edittext's onclick to open a dialog.  We do this so the screen does not shrink and the user can see what he/she types
@@ -347,7 +350,6 @@ public class MainActivity extends AppCompatActivity {
                 item.setTitle("Override Schedule");
             }
 
-
             //set scout id button
         } else if (item.getItemId() == R.id.setScoutIDButton) {
             setScoutNumber();
@@ -401,6 +403,8 @@ public class MainActivity extends AppCompatActivity {
                         highlightTeamNumberTexts();
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.putInt("scoutNumber", scoutNumber);
+                        myRef.child("scouts").child("scout"+scoutNumber).child("mostRecentUser").setValue(scoutName);
+                        myRef.child("scouts").child("scout"+scoutNumber).child("team").setValue(matchNumber);
                         editor.commit();
                     }
                 })
@@ -558,6 +562,7 @@ public class MainActivity extends AppCompatActivity {
                                 setScoutName(onFinish);
                             } else {
                                 if (onFinish != null) {
+                                    myRef.child("currentScouts").child(scoutName).setValue(1);
                                     onFinish.run();
                                 }
                             }
