@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private final MainActivity context = this;
 
     static FirebaseDatabase database = FirebaseDatabase.getInstance();
+    static DatabaseReference timdRef = database.getReference("TempTeamInMatchDatas");
     static DatabaseReference nameRef = database.getReference("scouts");
     int teamNum;
     static String sendLetter;
@@ -93,8 +94,6 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         //see comment on this variable above
         originalEditTextDrawable = findViewById(R.id.teamNumber1Edit).getBackground();
-
-        nameRef.child("test").setValue("test");
 
         //get any values received from other activities
         preferences = getSharedPreferences(PREFERENCES_FILE, 0);
@@ -233,17 +232,14 @@ public class MainActivity extends AppCompatActivity {
             JSONObject wrapper = new JSONObject();
             wrapper.put(data.teamNumber + "Q" + data.matchNumber, new JSONObject(json));
 
-            nameRef.child("teamInMatchData").child(data.teamNumber + "Q" + data.matchNumber+sendLetter).setValue(data);
+            timdRef.child(data.teamNumber + "Q" + data.matchNumber+"-"+sendLetter).setValue(data);
             return wrapper.toString();
         } catch (Exception e) {
             Log.i("JSON Error", "Failed to deserialize JSON to wrap");
             return null;
         }
     }
-
-
-
-
+    
     //highlight the edittext with the team number of the team that this scout will be scouting
     private void highlightTeamNumberTexts() {
         TextView scoutTeamText1 = (TextView) this.findViewById(R.id.teamNumber1Edit);
