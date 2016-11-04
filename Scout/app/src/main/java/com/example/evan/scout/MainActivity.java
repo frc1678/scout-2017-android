@@ -78,9 +78,10 @@ public class MainActivity extends AppCompatActivity {
     //save a reference to this activity for subclasses
     private final MainActivity context = this;
 
-
-
-
+    static FirebaseDatabase database = FirebaseDatabase.getInstance();
+    static DatabaseReference nameRef = database.getReference("scouts");
+    int teamNum;
+    static String sendLetter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,13 +127,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             highlightTeamNumberTexts();
         }
-
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference nameRef = database.getReference("scouts");
-        nameRef = nameRef.child("scout"+scoutNumber);
-        nameRef = nameRef.child("mostRecentUser");
-        nameRef.setValue(scoutName);
-
+        nameRef.child("scout"+scoutNumber).child("team").setValue(teamNum);
+        nameRef.child("scout"+scoutNumber).child("mostRecentUser").setValue(scoutName);
         //implement ui stuff
         //set the match number edittext's onclick to open a dialog.  We do this so the screen does not shrink and the user can see what he/she types
         final EditText matchNumberTextView = (EditText) findViewById(R.id.matchNumberText);
@@ -232,6 +228,8 @@ public class MainActivity extends AppCompatActivity {
             TeamInMatchData data = (TeamInMatchData)Utils.deserializeClass(json, TeamInMatchData.class);
             JSONObject wrapper = new JSONObject();
             wrapper.put(data.teamNumber + "Q" + data.matchNumber, new JSONObject(json));
+
+            nameRef.child("teamInMatchData").child(data.teamNumber + "Q" + data.matchNumber+sendLetter).setValue(data);
             return wrapper.toString();
         } catch (Exception e) {
             Log.i("JSON Error", "Failed to deserialize JSON to wrap");
@@ -247,15 +245,22 @@ public class MainActivity extends AppCompatActivity {
         TextView scoutTeamText1 = (TextView) this.findViewById(R.id.teamNumber1Edit);
         TextView scoutTeamText2 = (TextView) this.findViewById(R.id.teamNumber2Edit);
         TextView scoutTeamText3 = (TextView) this.findViewById(R.id.teamNumber3Edit);
-        if (scoutNumber%3 == 1) {
+        if((scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)){
+            sendLetter = "A";
+        } else if ((scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)){
+            sendLetter = "B";
+        } else if ((scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)) {
+            sendLetter ="C";
+        }
+        if ((scoutNumber==1)||((3<scoutNumber)&&(scoutNumber<7))){
             scoutTeamText1.setBackgroundColor(Color.parseColor("#64FF64"));
             scoutTeamText2.setBackground(originalEditTextDrawable);
             scoutTeamText3.setBackground(originalEditTextDrawable);
-        } else if (scoutNumber%3 == 2) {
+        } else if ((scoutNumber==2)||(6<scoutNumber)&&(scoutNumber<10)) {
             scoutTeamText2.setBackgroundColor(Color.parseColor("#64FF64"));
             scoutTeamText1.setBackground(originalEditTextDrawable);
             scoutTeamText3.setBackground(originalEditTextDrawable);
-        } else if (scoutNumber%3 == 0) {
+        } else if ((scoutNumber==3)||((9<scoutNumber)&&(scoutNumber<13))){
             scoutTeamText3.setBackgroundColor(Color.parseColor("#64FF64"));
             scoutTeamText1.setBackground(originalEditTextDrawable);
             scoutTeamText2.setBackground(originalEditTextDrawable);
@@ -396,10 +401,11 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             } else {
                                 int tmpScoutNumber = Integer.parseInt(text);
-                                if ((tmpScoutNumber < 1) || (tmpScoutNumber > 6)) {
+                                if ((tmpScoutNumber < 1) || (tmpScoutNumber > 18)) {
                                     throw new NumberFormatException();
                                 }
                                 scoutNumber = tmpScoutNumber;
+                                nameRef.child("scout"+scoutNumber).child("mostRecentUser").setValue(scoutName);
                             }
                         } catch (NumberFormatException nfe) {
                             setScoutNumber();
@@ -430,12 +436,12 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             TextView textView = (TextView) view;
-                            int teamNum;
                             try {
                                 teamNum = Integer.parseInt(editText.getText().toString());
                             } catch (NumberFormatException nfe) {
                                 return;
                             }
+                            nameRef.child("scout"+scoutNumber).child("team").setValue(teamNum);
                             textView.setText(Integer.toString(teamNum));
                         }
                     })
@@ -514,13 +520,13 @@ public class MainActivity extends AppCompatActivity {
         //collect the team number
         if (teamNumber == -1) {
             try {
-                if (scoutNumber % 3 == 1) {
+                if (((0<scoutNumber)&&(scoutNumber<4))||((9<scoutNumber)&&(scoutNumber<13))) {
                     TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber1Edit);
                     teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
-                } else if (scoutNumber % 3 == 2) {
+                } else if (((3<scoutNumber)&&(scoutNumber<7))||((12<scoutNumber)&&(scoutNumber<16))){
                     TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber2Edit);
                     teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
-                } else if (scoutNumber % 3 == 0) {
+                } else if (((6<scoutNumber)&&(scoutNumber<10))||((15<scoutNumber)&&(scoutNumber<19))) {
                     TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber3Edit);
                     teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
                 } else {
@@ -571,6 +577,7 @@ public class MainActivity extends AppCompatActivity {
                             setScoutName(onFinish);
                         } else {
                             scoutName = tmpScoutName;
+                            nameRef.child("scout"+scoutNumber).child("mostRecentUser").setValue(scoutName);
                             if (onFinish != null) {
                                 onFinish.run();
                             }
