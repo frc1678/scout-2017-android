@@ -24,8 +24,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,7 +40,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -91,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         //see comment on this variable above
         originalEditTextDrawable = findViewById(R.id.teamNumber1Edit).getBackground();
+
+        nameRef.child("test").setValue("test");
 
         //get any values received from other activities
         preferences = getSharedPreferences(PREFERENCES_FILE, 0);
@@ -300,6 +304,19 @@ public class MainActivity extends AppCompatActivity {
 
     //fill in the edittexts with the team numbers found in the schedule
     public void updateTeamNumbers() {
+        final DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("team");
+        teamNumRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String fetchedTeamNum = dataSnapshot.getValue().toString();
+                teamNum = Integer.parseInt(fetchedTeamNum);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
         if (schedule.hasSchedule()) {
             EditText teamNumber1Edit = (EditText) findViewById(R.id.teamNumber1Edit);
             EditText teamNumber2Edit = (EditText) findViewById(R.id.teamNumber2Edit);
@@ -405,6 +422,7 @@ public class MainActivity extends AppCompatActivity {
                                     throw new NumberFormatException();
                                 }
                                 scoutNumber = tmpScoutNumber;
+                                Log.i("oh oh", "setting scoutname on firebase");
                                 nameRef.child("scout"+scoutNumber).child("mostRecentUser").setValue(scoutName);
                             }
                         } catch (NumberFormatException nfe) {
