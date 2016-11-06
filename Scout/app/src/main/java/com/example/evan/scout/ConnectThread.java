@@ -239,11 +239,11 @@ public class ConnectThread extends Thread {
                     context.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            new AlertDialog.Builder(context)
-                                    .setTitle("Repeated Connection Failure")
-                                    .setMessage("Please resend this data when successful data transfer is made.")
-                                    .setNeutralButton("Dismiss", null)
-                                    .show();
+//                            new AlertDialog.Builder(context)
+//                                    .setTitle("Repeated Connection Failure")
+//                                    .setMessage("Please resend this data when successful data transfer is made.")
+//                                    .setNeutralButton("Dismiss", null)
+//                                    .show();
                         }
                     });
                     return;
@@ -289,11 +289,11 @@ public class ConnectThread extends Thread {
                     context.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            new AlertDialog.Builder(context)
-                                    .setTitle("Repeated Data Send Failure")
-                                    .setMessage("Please resend this data when successful data transfer is made.")
-                                    .setNeutralButton("Dismiss", null)
-                                    .show();
+//                            new AlertDialog.Builder(context)
+//                                    .setTitle("Repeated Data Send Failure")
+//                                    .setMessage("Please resend this data when successful data transfer is made.")
+//                                    .setNeutralButton("Dismiss", null)
+//                                    .show();
                         }
                     });
                     return;

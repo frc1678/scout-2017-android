@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     static DatabaseReference nameRef = database.getReference("scouts");
     int teamNum;
     static String sendLetter;
+    String matchNum = "1";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         //implement ui stuff
         //set the match number edittext's onclick to open a dialog.  We do this so the screen does not shrink and the user can see what he/she types
         final EditText matchNumberTextView = (EditText) findViewById(R.id.matchNumberText);
-        matchNumberTextView.setText("Q" + Integer.toString(matchNumber));
+        matchNumberTextView.setText("Q" + getMatchNumber());
         matchNumberTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -233,18 +234,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public String wrapJson(String json) {
-        if (json == null) {return null;}
-        try {
-            TeamInMatchData data = (TeamInMatchData)Utils.deserializeClass(json, TeamInMatchData.class);
-            JSONObject wrapper = new JSONObject();
-            wrapper.put(data.teamNumber + "Q" + data.matchNumber, new JSONObject(json));
-            timdRef.child(updateTeamNumbers() + "Q" + data.matchNumber+"-"+sendLetter).setValue(data);
+    public String wrapJson(final String json) {
+            final TeamInMatchData data = (TeamInMatchData)Utils.deserializeClass(json, TeamInMatchData.class);
+            final JSONObject wrapper = new JSONObject();
+            final DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("team");
+            teamNumRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    String fetchedTeamNum = dataSnapshot.getValue().toString();
+                    teamNum = Integer.parseInt(fetchedTeamNum);
+                    if (json == null) {}
+                    try {
+                        wrapper.put(teamNum + "Q" + getMatchNumber(), new JSONObject(json));
+                    } catch (Exception e) {
+                    Log.i("JSON Error", "Failed to deserialize JSON to wrap");
+                    }
+                        Log.i("Boutta Send Data", Integer.toString(teamNum));
+                    if (highlightTeamNumberTexts().equals("YOUSHANT")){
+                        Toast.makeText(getBaseContext(), "You shouldn't be sending data", Toast.LENGTH_LONG).show();
+                    } else {
+                        timdRef.child(teamNum + "Q" + getMatchNumber() + highlightTeamNumberTexts()).setValue(data);
+                    }
+
+
+                    }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                    Toast.makeText(getBaseContext(), "Match Not Available", Toast.LENGTH_LONG).show();
+                }
+
+            });
             return wrapper.toString();
-        } catch (Exception e) {
-            Log.i("JSON Error", "Failed to deserialize JSON to wrap");
-            return null;
-        }
     }
 
     public void setImage() throws IOException {
@@ -263,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
                     WebView wv = (WebView) findViewById(R.id.webView);
                     wv.getSettings().setUseWideViewPort(true);
                     wv.getSettings().setLoadWithOverviewMode(true);
-                    wv.loadUrl("https://www.gopage.com/assets/public_assets/img/blank.gif");
+                    wv.loadUrl("http://polyureashop.studio.crasman.fi/pub/web/img/no-image.jpg");
                 }
             }
 
@@ -275,18 +297,32 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public String getMatchNumber(){
+        final DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("match");
+        teamNumRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()){
+                    matchNum = dataSnapshot.getValue().toString();
+                }else{
+                    matchNum = "1";
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+                Toast.makeText(getBaseContext(), "Match Not Available", Toast.LENGTH_LONG).show();
+            }
+
+        });
+        return matchNum;
+    }
     //highlight the edittext with the team number of the team that this scout will be scouting
-    private void highlightTeamNumberTexts() {
+    private String highlightTeamNumberTexts() {
 //        TextView scoutTeamText1 = (TextView) this.findViewById(R.id.teamNumber1Edit);
 //        TextView scoutTeamText2 = (TextView) this.findViewById(R.id.teamNumber2Edit);
 //        TextView scoutTeamText3 = (TextView) this.findViewById(R.id.teamNumber3Edit);
-        if((scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)){
-            sendLetter = "A";
-        } else if ((scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)){
-            sendLetter = "B";
-        } else if ((scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)) {
-            sendLetter ="C";
-        }
 //        if ((scoutNumber==1)||((3<scoutNumber)&&(scoutNumber<7))){
 //            scoutTeamText1.setBackgroundColor(Color.parseColor("#64FF64"));
 //            scoutTeamText2.setBackground(originalEditTextDrawable);
@@ -329,26 +365,38 @@ public class MainActivity extends AppCompatActivity {
             fileListAdapter.setSuperName(superName);
         }
         updateTeamNumbers();
+        if((scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)){
+            return "-A";
+        } else if ((scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)){
+            return "-B";
+        } else if ((scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)) {
+            return "-C";
+        } else if(scoutNumber>12){
+            return "YOUSHANT";
+        } else {
+            return "";
+        }
     }
 
 
 
     //fill in the edittexts with the team numbers found in the schedule
-    public int updateTeamNumbers() {
+    public void updateTeamNumbers() {
         final DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("team");
         teamNumRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                String fetchedTeamNum = dataSnapshot.getValue().toString();
-                teamNum = Integer.parseInt(fetchedTeamNum);
-                TextView matchNumberTextView = (TextView) findViewById(R.id.matchNumberText);
-                matchNumberTextView.setText("Q" + Integer.toString(matchNumber) + ": " + teamNum);
-                try {
-                    setImage();
-                } catch (IOException e){
-                    throw new RuntimeException(e);
+                if(dataSnapshot.exists()){
+                    String fetchedTeamNum = dataSnapshot.getValue().toString();
+                    teamNum = Integer.parseInt(fetchedTeamNum);
+                    TextView matchNumberTextView = (TextView) findViewById(R.id.matchNumberText);
+                    matchNumberTextView.setText("Q" + getMatchNumber() + ": " + teamNum);
+                    try {
+                        setImage();
+                    } catch (IOException e){
+                        throw new RuntimeException(e);
+                    }
                 }
-
             }
 
             @Override
@@ -385,7 +433,6 @@ public class MainActivity extends AppCompatActivity {
 //                teamNumber3Edit.setText("");
 //            }
 //        }
-        return teamNum;
     }
 
 
@@ -432,6 +479,7 @@ public class MainActivity extends AppCompatActivity {
             //get schedule button
         } else if (item.getItemId() == R.id.scheduleButton) {
             updateTeamNumbers();
+            getMatchNumber();
         }
         return true;
     }
@@ -467,6 +515,8 @@ public class MainActivity extends AppCompatActivity {
                                 scoutNumber = tmpScoutNumber;
                                 Log.i("oh oh", "setting scoutname on firebase");
                                 nameRef.child("scout"+scoutNumber).child("mostRecentUser").setValue(scoutName);
+                                highlightTeamNumberTexts();
+                                updateTeamNumbers();
                             }
                         } catch (NumberFormatException nfe) {
                             setScoutNumber();
