@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
     static DatabaseReference timdRef = database.getReference("TempTeamInMatchDatas");
     static DatabaseReference teamRef = database.getReference("Teams");
     static DatabaseReference nameRef = database.getReference("scouts");
+    DatabaseReference mainRef = database.getReference();
     int teamNum;
     static String sendLetter;
     String matchNum = "1";
@@ -121,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
             editor.putInt("matchNumber", matchNumber);
             editor.commit();
         }
+
+        EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
+        teamNumberEdit.setEnabled(false);
+        EditText matchNumberEdit = (EditText) findViewById(R.id.matchNumTextEdit);
+        matchNumberEdit.setEnabled(false);
         //scout initials
         scoutName = getIntent().getStringExtra("scoutName");
         //set up schedule
@@ -131,8 +137,8 @@ public class MainActivity extends AppCompatActivity {
 //            overridden = true;
 //        }
 
-        final DatabaseReference teamNumRef = nameRef.child("currentMatchNum");
-        teamNumRef.addValueEventListener(new ValueEventListener() {
+        final DatabaseReference matchRef = mainRef.child("currentMatchNum");
+        matchRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()){
@@ -161,40 +167,40 @@ public class MainActivity extends AppCompatActivity {
 
         //implement ui stuff
         //set the match number edittext's onclick to open a dialog.  We do this so the screen does not shrink and the user can see what he/she types
-        final EditText matchNumberTextView = (EditText) findViewById(R.id.matchNumberText);
-        matchNumberTextView.setText("Q" + getMatchNumber());
-        matchNumberTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //display dialog if overridden
-                if (overridden) {
-                    final EditText editText = new EditText(context);
-                    editText.setInputType(InputType.TYPE_CLASS_NUMBER);
-                    editText.setHint("Match Number");
-                    new AlertDialog.Builder(context)
-                            .setTitle("Set Match")
-                            .setView(editText)
-                            .setNegativeButton("Cancel", null)
-                            .setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    //when they click done, we get the matchnumber from what they put
-                                    try {
-                                        matchNumber = Integer.parseInt(editText.getText().toString());
-                                    } catch (NumberFormatException nfe) {
-                                        matchNumber = 1;
-                                    }
-                                    SharedPreferences.Editor editor = preferences.edit();
-                                    editor.putInt("matchNumber", matchNumber);
-                                    editor.commit();
-                                    matchNumberTextView.setText("Q" + Integer.toString(matchNumber));
-                                    updateTeamNumbers();
-                                }
-                            })
-                            .show();
-                }
-            }
-        });
+//        final EditText matchNumberTextView = (EditText) findViewById(R.id.matchNumTextEdit);
+//        matchNumberTextView.setText(getMatchNumber());
+//        matchNumberTextView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                //display dialog if overridden
+//                if (overridden) {
+//                    final EditText editText = new EditText(context);
+//                    editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+//                    editText.setHint("Match Number");
+//                    new AlertDialog.Builder(context)
+//                            .setTitle("Set Match")
+//                            .setView(editText)
+//                            .setNegativeButton("Cancel", null)
+//                            .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+//                                @Override
+//                                public void onClick(DialogInterface dialog, int which) {
+//                                    //when they click done, we get the matchnumber from what they put
+//                                    try {
+//                                        matchNumber = Integer.parseInt(editText.getText().toString());
+//                                    } catch (NumberFormatException nfe) {
+//                                        matchNumber = 1;
+//                                    }
+//                                    SharedPreferences.Editor editor = preferences.edit();
+//                                    editor.putInt("matchNumber", matchNumber);
+//                                    editor.commit();
+//                                    matchNumberTextView.setText("Q" + Integer.toString(matchNumber));
+//                                    updateTeamNumbers();
+//                                }
+//                            })
+//                            .show();
+//                }
+//            }
+//        });
 
         //text watcher for listview search bar
 //        final EditText searchBar = (EditText) findViewById(R.id.searchBar);
@@ -316,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String getMatchNumber(){
-        final DatabaseReference teamNumRef = nameRef.child("currentMatchNum");
+        final DatabaseReference teamNumRef = mainRef.child("currentMatchNum");
         teamNumRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -406,8 +412,10 @@ public class MainActivity extends AppCompatActivity {
                 if(dataSnapshot.exists()){
                     String fetchedTeamNum = dataSnapshot.getValue().toString();
                     teamNum = Integer.parseInt(fetchedTeamNum);
-                    TextView matchNumberTextView = (TextView) findViewById(R.id.matchNumberText);
-                    matchNumberTextView.setText("Q" + getMatchNumber() + ": " + teamNum);
+                    EditText matchNumberEdit = (EditText) findViewById(R.id.matchNumTextEdit);
+                    matchNumberEdit.setText(getMatchNumber());
+                    EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
+                    teamNumberEdit.setText(fetchedTeamNum);
                     try {
                         setImage();
                     } catch (IOException e){
@@ -460,7 +468,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         if (overridden) {
             MenuItem item = menu.findItem(R.id.mainOverride);
-            item.setTitle("Automate Schedule");
+            item.setTitle("Confirm Changes");
         }
         return true;
     }
@@ -476,12 +484,26 @@ public class MainActivity extends AppCompatActivity {
 //                Toast.makeText(this, "Schedule not available. Please get schedule", Toast.LENGTH_LONG).show();
 //                return false;
 //            }
-//            overridden = !overridden;
-//            if (overridden) {
-//                item.setTitle("Automate Schedule");
-//            } else {
-//                item.setTitle("Override Schedule");
-//            }
+            overridden = !overridden;
+            if (overridden) {
+                item.setTitle("Confirm Changes");
+                EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
+                teamNumberEdit.setEnabled(true);
+                EditText matchNumberEdit = (EditText) findViewById(R.id.matchNumTextEdit);
+                matchNumberEdit.setEnabled(true);
+            } else {
+                item.setTitle("Override Schedule");
+                EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
+                EditText matchNumberEdit = (EditText) findViewById(R.id.matchNumTextEdit);
+                matchNumberEdit.setEnabled(false);
+                teamNumberEdit.setEnabled(false);
+                String newTeamNum = teamNumberEdit.getText().toString();
+                String newMatchNum = matchNumberEdit.getText().toString();
+                nameRef.child("scout"+scoutNumber).child("team").setValue(newTeamNum);
+                mainRef.child("currentMatchNum").setValue(newMatchNum);
+                updateTeamNumbers();
+                getMatchNumber();
+            }
 
 
             //set scout id button
@@ -552,31 +574,31 @@ public class MainActivity extends AppCompatActivity {
 
     //onclick for edittexts containing team numbers
     //again, we display dialogs to prevent screen shrinking
-    public void editTeamNumber(final View view) {
-        if (overridden) {
-            final EditText editText = new EditText(this);
-            editText.setInputType(InputType.TYPE_CLASS_NUMBER);
-            editText.setHint("Team Number");
-            new AlertDialog.Builder(this)
-                    .setTitle("Set Team Number")
-                    .setView(editText)
-                    .setNegativeButton("Cancel", null)
-                    .setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            TextView textView = (TextView) view;
-                            try {
-                                teamNum = Integer.parseInt(editText.getText().toString());
-                            } catch (NumberFormatException nfe) {
-                                return;
-                            }
-                            nameRef.child("scout"+scoutNumber).child("team").setValue(teamNum);
-                            textView.setText(Integer.toString(teamNum));
-                        }
-                    })
-                    .show();
-        }
-    }
+//    public void editTeamNumber(final View view) {
+//        if (overridden) {
+//            final EditText editText = new EditText(this);
+//            editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+//            editText.setHint("Team Number");
+//            new AlertDialog.Builder(this)
+//                    .setTitle("Set Team Number")
+//                    .setView(editText)
+//                    .setNegativeButton("Cancel", null)
+//                    .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            TextView textView = (TextView) view;
+//                            try {
+//                                teamNum = Integer.parseInt(editText.getText().toString());
+//                            } catch (NumberFormatException nfe) {
+//                                return;
+//                            }
+//                            nameRef.child("scout"+scoutNumber).child("team").setValue(teamNum);
+//                            textView.setText(Integer.toString(teamNum));
+//                        }
+//                    })
+//                    .show();
+//        }
+//    }
 
 
 

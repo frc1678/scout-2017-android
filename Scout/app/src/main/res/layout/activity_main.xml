@@ -12,14 +12,6 @@
         android:layout_width="0dp"
         android:layout_height="fill_parent"
         android:layout_alignParentLeft="true">
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/matchNumberText"
-            android:text="Q1"
-            android:textSize="40dp"
-            android:textColor="#000000"
-            android:editable="false"/>
 
         <Button
             android:layout_width="wrap_content"
@@ -29,6 +21,53 @@
             android:layout_alignParentBottom="true"
             android:onClick="startScoutButton"
             android:id="@+id/scoutButton"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Q"
+            android:textSize="40dp"
+            android:textColor="#000000"
+            android:id="@+id/qView"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <EditText
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:textSize="27dp"
+            android:textColor="#000000"
+            android:ems="10"
+            android:hint="#"
+            android:id="@+id/matchNumTextEdit"
+            android:layout_toRightOf="@+id/qView" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text=": "
+            android:textSize="40dp"
+            android:textColor="#000000"
+            android:id="@+id/colonView"
+            android:layout_toRightOf="@+id/matchNumTextEdit"
+            android:layout_toEndOf="@+id/matchNumTextEdit" />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:inputType="number"
+            android:textSize="27dp"
+            android:ems="10"
+            android:hint="Team Number"
+            android:id="@+id/teamNumEdit"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_toRightOf="@+id/colonView"
+            android:layout_toEndOf="@+id/colonView" />
 
     </RelativeLayout>
     <RelativeLayout
