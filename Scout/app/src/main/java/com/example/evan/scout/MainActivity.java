@@ -131,6 +131,24 @@ public class MainActivity extends AppCompatActivity {
 //            overridden = true;
 //        }
 
+        final DatabaseReference teamNumRef = nameRef.child("currentMatchNum");
+        teamNumRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()){
+                    matchNum = dataSnapshot.getValue().toString();
+                    updateTeamNumbers();
+                }else{
+                    matchNum = "1";
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+                Toast.makeText(getBaseContext(), "Match Not Available", Toast.LENGTH_LONG).show();
+            }
+        });
+
         scoutNumber = preferences.getInt("scoutNumber", -1);
         //if we don't have scout id, get it
         if (scoutNumber == -1) {
@@ -298,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String getMatchNumber(){
-        final DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("match");
+        final DatabaseReference teamNumRef = nameRef.child("currentMatchNum");
         teamNumRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -308,7 +326,6 @@ public class MainActivity extends AppCompatActivity {
                     matchNum = "1";
                 }
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 System.out.println("The read failed: " + databaseError.getCode());
