@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.EditText;
@@ -103,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //lock screen horizontal
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
         //see comment on this variable above
 //        originalEditTextDrawable = findViewById(R.id.teamNumber1Edit).getBackground();
 
@@ -129,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
         matchNumberEdit.setEnabled(false);
         //scout initials
         scoutName = getIntent().getStringExtra("scoutName");
+
         //set up schedule
 //        schedule = new ScheduleHandler(this);
 //        schedule.getScheduleFromDisk();
@@ -411,7 +415,9 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
                     String fetchedTeamNum = dataSnapshot.getValue().toString();
-                    teamNum = Integer.parseInt(fetchedTeamNum);
+                    if(fetchedTeamNum.length()>0){
+                        teamNum = Integer.parseInt(fetchedTeamNum);
+                    }
                     EditText matchNumberEdit = (EditText) findViewById(R.id.matchNumTextEdit);
                     matchNumberEdit.setText(getMatchNumber());
                     EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
@@ -499,10 +505,14 @@ public class MainActivity extends AppCompatActivity {
                 teamNumberEdit.setEnabled(false);
                 String newTeamNum = teamNumberEdit.getText().toString();
                 String newMatchNum = matchNumberEdit.getText().toString();
-                nameRef.child("scout"+scoutNumber).child("team").setValue(newTeamNum);
-                mainRef.child("currentMatchNum").setValue(newMatchNum);
-                updateTeamNumbers();
-                getMatchNumber();
+                if((newMatchNum!=null) && (newTeamNum!=null)){
+                    nameRef.child("scout"+scoutNumber).child("team").setValue(newTeamNum);
+                    mainRef.child("currentMatchNum").setValue(newMatchNum);
+                    updateTeamNumbers();
+                    getMatchNumber();
+                } else {
+                    Toast.makeText(context, "No changes have been made", Toast.LENGTH_LONG).show();
+                }
             }
 
 
