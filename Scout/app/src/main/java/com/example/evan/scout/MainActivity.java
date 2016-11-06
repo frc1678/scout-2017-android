@@ -233,13 +233,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public static String wrapJson(String json) {
+    public String wrapJson(String json) {
         if (json == null) {return null;}
         try {
             TeamInMatchData data = (TeamInMatchData)Utils.deserializeClass(json, TeamInMatchData.class);
             JSONObject wrapper = new JSONObject();
             wrapper.put(data.teamNumber + "Q" + data.matchNumber, new JSONObject(json));
-            timdRef.child(data.teamNumber + "Q" + data.matchNumber+"-"+sendLetter).setValue(data);
+            timdRef.child(updateTeamNumbers() + "Q" + data.matchNumber+"-"+sendLetter).setValue(data);
             return wrapper.toString();
         } catch (Exception e) {
             Log.i("JSON Error", "Failed to deserialize JSON to wrap");
@@ -280,13 +280,13 @@ public class MainActivity extends AppCompatActivity {
 //        TextView scoutTeamText1 = (TextView) this.findViewById(R.id.teamNumber1Edit);
 //        TextView scoutTeamText2 = (TextView) this.findViewById(R.id.teamNumber2Edit);
 //        TextView scoutTeamText3 = (TextView) this.findViewById(R.id.teamNumber3Edit);
-//        if((scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)){
-//            sendLetter = "A";
-//        } else if ((scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)){
-//            sendLetter = "B";
-//        } else if ((scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)) {
-//            sendLetter ="C";
-//        }
+        if((scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)){
+            sendLetter = "A";
+        } else if ((scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)){
+            sendLetter = "B";
+        } else if ((scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)) {
+            sendLetter ="C";
+        }
 //        if ((scoutNumber==1)||((3<scoutNumber)&&(scoutNumber<7))){
 //            scoutTeamText1.setBackgroundColor(Color.parseColor("#64FF64"));
 //            scoutTeamText2.setBackground(originalEditTextDrawable);
@@ -334,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     //fill in the edittexts with the team numbers found in the schedule
-    public void updateTeamNumbers() {
+    public int updateTeamNumbers() {
         final DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("team");
         teamNumRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -356,6 +356,7 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("The read failed: " + databaseError.getCode());
                 Toast.makeText(getBaseContext(), "Match Not Available", Toast.LENGTH_LONG).show();
             }
+
         });
 //        WebView webView = (WebView) findViewById(R.id.webView);
 //        webView.loadUrl("http://imgur.com/gallery/CGPuC");
@@ -384,6 +385,7 @@ public class MainActivity extends AppCompatActivity {
 //                teamNumber3Edit.setText("");
 //            }
 //        }
+        return teamNum;
     }
 
 
@@ -601,7 +603,7 @@ public class MainActivity extends AppCompatActivity {
 //                return;
 //            }
 //        }
-        fileListAdapter.stopFileObserver();
+//        fileListAdapter.stopFileObserver();
         //TODO
         final Intent nextActivity = new Intent(context, AutoActivity.class)
                 .putExtra("matchNumber", matchNumber).putExtra("overridden", overridden)
