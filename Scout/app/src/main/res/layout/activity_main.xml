@@ -20,54 +20,7 @@
             android:textSize="40dp"
             android:textColor="#000000"
             android:editable="false"/>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/editID"
-            android:orientation="vertical"
-            android:layout_below="@+id/matchNumberText"
-            android:layout_above="@+id/scoutButton">
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.25">
-            </RelativeLayout>
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.16"
-                android:id="@+id/teamNumber1Edit"
-                android:onClick="editTeamNumber"
-                android:gravity="center_vertical"
-                android:textColor="#000000"
-                android:textSize="20sp"
-                android:editable="false"/>
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.16"
-                android:id="@+id/teamNumber2Edit"
-                android:onClick="editTeamNumber"
-                android:gravity="center_vertical"
-                android:textColor="#000000"
-                android:textSize="20sp"
-                android:editable="false"/>
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.16"
-                android:id="@+id/teamNumber3Edit"
-                android:onClick="editTeamNumber"
-                android:gravity="center_vertical"
-                android:textColor="#000000"
-                android:textSize="20sp"
-                android:editable="false"/>
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.25">
-            </RelativeLayout>
-        </LinearLayout>
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -76,6 +29,7 @@
             android:layout_alignParentBottom="true"
             android:onClick="startScoutButton"
             android:id="@+id/scoutButton"/>
+
     </RelativeLayout>
     <RelativeLayout
         android:layout_width="0dp"
@@ -83,33 +37,32 @@
         android:id="@+id/listLayout"
         android:layout_alignParentRight="true"
         android:layout_weight="1">
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Search By Name, Team Number, or Match Number"
-            android:id="@+id/searchBar"/>
-        <ListView
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/infoList"
-            android:layout_above="@+id/resendAllUnsent"
-            android:layout_below="@+id/searchBar">
-        </ListView>
-        <Button
+
+        <!--<Button-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="resend all unsent"-->
+            <!--android:id="@+id/resendAllUnsent"-->
+            <!--android:layout_alignParentBottom="true"-->
+            <!--android:layout_alignParentLeft="true"-->
+            <!--android:onClick="resendAllUnsent"/>-->
+        <!--<Button-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="resend all"-->
+            <!--android:id="@+id/resendAll"-->
+            <!--android:layout_alignParentBottom="true"-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:onClick="resendAll"/>-->
+        <WebView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="resend all unsent"
-            android:id="@+id/resendAllUnsent"
-            android:layout_alignParentBottom="true"
+            android:id="@+id/webView"
+            android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
-            android:onClick="resendAllUnsent"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="resend all"
-            android:id="@+id/resendAll"
+            android:layout_alignParentStart="true"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:onClick="resendAll"/>
+            android:layout_alignParentEnd="true" />
     </RelativeLayout>
 </LinearLayout>

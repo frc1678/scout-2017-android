@@ -99,26 +99,26 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="rxandroid-1.0.1" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-23.2.0" level="project" />
-    <orderEntry type="library" exported="" name="firebase-database-connection-9.0.2" level="project" />
-    <orderEntry type="library" exported="" name="play-services-basement-9.0.2" level="project" />
     <orderEntry type="library" exported="" name="gson-2.2.4" level="project" />
-    <orderEntry type="library" exported="" name="firebase-common-9.0.2" level="project" />
-    <orderEntry type="library" exported="" name="play-services-tasks-9.0.2" level="project" />
-    <orderEntry type="library" exported="" name="firebase-analytics-9.0.2" level="project" />
-    <orderEntry type="library" exported="" name="play-services-base-9.0.2" level="project" />
-    <orderEntry type="library" exported="" name="multidex-1.0.1" level="project" />
-    <orderEntry type="library" exported="" name="firebase-core-9.0.2" level="project" />
-    <orderEntry type="library" exported="" name="instabug-2.3.1" level="project" />
-    <orderEntry type="library" exported="" name="firebase-database-9.0.2" level="project" />
-    <orderEntry type="library" exported="" name="rxjava-1.0.13" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-23.2.0" level="project" />
-    <orderEntry type="library" exported="" name="firebase-storage-common-9.0.2" level="project" />
     <orderEntry type="library" exported="" name="mimecraft-1.1.1" level="project" />
-    <orderEntry type="library" exported="" name="appcompat-v7-23.1.0" level="project" />
-    <orderEntry type="library" exported="" name="firebase-iid-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="instabug-2.3.1" level="project" />
+    <orderEntry type="library" exported="" name="play-services-basement-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="play-services-base-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="firebase-database-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="play-services-tasks-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="rxandroid-1.0.1" level="project" />
+    <orderEntry type="library" exported="" name="firebase-database-connection-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="firebase-storage-common-9.0.2" level="project" />
     <orderEntry type="library" exported="" name="firebase-analytics-impl-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="rxjava-1.0.13" level="project" />
+    <orderEntry type="library" exported="" name="multidex-1.0.1" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-23.2.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-storage-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-23.2.0" level="project" />
+    <orderEntry type="library" exported="" name="appcompat-v7-23.1.0" level="project" />
+    <orderEntry type="library" exported="" name="firebase-common-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="firebase-iid-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="firebase-core-9.0.2" level="project" />
+    <orderEntry type="library" exported="" name="firebase-analytics-9.0.2" level="project" />
   </component>
 </module>

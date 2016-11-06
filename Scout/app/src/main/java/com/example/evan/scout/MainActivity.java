@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -18,7 +20,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,7 +38,10 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
+import java.io.IOException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean overridden = false;
 
     //schedule of matches
-    private ScheduleHandler schedule;
+//    private ScheduleHandler schedule;
 
     //shared preferences to receive previous matchNumber, scoutNumber
     private SharedPreferences preferences;
@@ -82,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
     static FirebaseDatabase database = FirebaseDatabase.getInstance();
     static DatabaseReference timdRef = database.getReference("TempTeamInMatchDatas");
+    static DatabaseReference teamRef = database.getReference("Teams");
     static DatabaseReference nameRef = database.getReference("scouts");
     int teamNum;
     static String sendLetter;
@@ -93,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         //lock screen horizontal
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         //see comment on this variable above
-        originalEditTextDrawable = findViewById(R.id.teamNumber1Edit).getBackground();
+//        originalEditTextDrawable = findViewById(R.id.teamNumber1Edit).getBackground();
 
         //get any values received from other activities
         preferences = getSharedPreferences(PREFERENCES_FILE, 0);
@@ -113,14 +122,13 @@ public class MainActivity extends AppCompatActivity {
         }
         //scout initials
         scoutName = getIntent().getStringExtra("scoutName");
-
         //set up schedule
-        schedule = new ScheduleHandler(this);
-        schedule.getScheduleFromDisk();
+//        schedule = new ScheduleHandler(this);
+//        schedule.getScheduleFromDisk();
         //if we don't have the schedule, they must enter the team numbers and it must be overridden
-        if (!schedule.hasSchedule()) {
-            overridden = true;
-        }
+//        if (!schedule.hasSchedule()) {
+//            overridden = true;
+//        }
 
         scoutNumber = preferences.getInt("scoutNumber", -1);
         //if we don't have scout id, get it
@@ -130,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             highlightTeamNumberTexts();
         }
-        nameRef.child("scout"+scoutNumber).child("team").setValue(teamNum);
         nameRef.child("scout"+scoutNumber).child("mostRecentUser").setValue(scoutName);
+
         //implement ui stuff
         //set the match number edittext's onclick to open a dialog.  We do this so the screen does not shrink and the user can see what he/she types
         final EditText matchNumberTextView = (EditText) findViewById(R.id.matchNumberText);
@@ -170,31 +178,31 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //text watcher for listview search bar
-        final EditText searchBar = (EditText) findViewById(R.id.searchBar);
-        searchBar.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                String text = searchBar.getText().toString();
-                fileListAdapter.updateListView();
-                if (!text.equals("")) {
-                    //get list of files starting with text
-                    //pass them off to filter fileListAdapter
-                    fileListAdapter.filterListView(text);
-                }
-            }
-        });
+//        final EditText searchBar = (EditText) findViewById(R.id.searchBar);
+//        searchBar.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable s) {
+//                String text = searchBar.getText().toString();
+//                fileListAdapter.updateListView();
+//                if (!text.equals("")) {
+//                    //get list of files starting with text
+//                    //pass them off to filter fileListAdapter
+//                    fileListAdapter.filterListView(text);
+//                }
+//            }
+//        });
 
         //set up list of files
-        ListView fileList = (ListView) findViewById(R.id.infoList);
-        fileListAdapter = new FileListAdapter(this, fileList, uuid, superName);
+//        ListView fileList = (ListView) findViewById(R.id.infoList);
+//        fileListAdapter = new FileListAdapter(this, fileList, uuid, superName);
 
 
 
@@ -231,7 +239,6 @@ public class MainActivity extends AppCompatActivity {
             TeamInMatchData data = (TeamInMatchData)Utils.deserializeClass(json, TeamInMatchData.class);
             JSONObject wrapper = new JSONObject();
             wrapper.put(data.teamNumber + "Q" + data.matchNumber, new JSONObject(json));
-
             timdRef.child(data.teamNumber + "Q" + data.matchNumber+"-"+sendLetter).setValue(data);
             return wrapper.toString();
         } catch (Exception e) {
@@ -239,32 +246,61 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-    
+
+    public void setImage() throws IOException {
+        DatabaseReference urlRef = teamRef.child(Integer.toString(teamNum)).child("selectedImageUrl");
+        urlRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    final String urlString = dataSnapshot.getValue().toString();
+                    WebView wv = (WebView) findViewById(R.id.webView);
+                    wv.getSettings().setBuiltInZoomControls(true);
+                    wv.getSettings().setUseWideViewPort(true);
+                    wv.getSettings().setLoadWithOverviewMode(true);
+                    wv.loadUrl(urlString);
+                } else {
+                    WebView wv = (WebView) findViewById(R.id.webView);
+                    wv.getSettings().setBuiltInZoomControls(true);
+                    wv.getSettings().setUseWideViewPort(true);
+                    wv.getSettings().setLoadWithOverviewMode(true);
+                    wv.loadUrl("https://www.gopage.com/assets/public_assets/img/blank.gif");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+                Toast.makeText(getBaseContext(), "Image Not Availible", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     //highlight the edittext with the team number of the team that this scout will be scouting
     private void highlightTeamNumberTexts() {
-        TextView scoutTeamText1 = (TextView) this.findViewById(R.id.teamNumber1Edit);
-        TextView scoutTeamText2 = (TextView) this.findViewById(R.id.teamNumber2Edit);
-        TextView scoutTeamText3 = (TextView) this.findViewById(R.id.teamNumber3Edit);
-        if((scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)){
-            sendLetter = "A";
-        } else if ((scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)){
-            sendLetter = "B";
-        } else if ((scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)) {
-            sendLetter ="C";
-        }
-        if ((scoutNumber==1)||((3<scoutNumber)&&(scoutNumber<7))){
-            scoutTeamText1.setBackgroundColor(Color.parseColor("#64FF64"));
-            scoutTeamText2.setBackground(originalEditTextDrawable);
-            scoutTeamText3.setBackground(originalEditTextDrawable);
-        } else if ((scoutNumber==2)||(6<scoutNumber)&&(scoutNumber<10)) {
-            scoutTeamText2.setBackgroundColor(Color.parseColor("#64FF64"));
-            scoutTeamText1.setBackground(originalEditTextDrawable);
-            scoutTeamText3.setBackground(originalEditTextDrawable);
-        } else if ((scoutNumber==3)||((9<scoutNumber)&&(scoutNumber<13))){
-            scoutTeamText3.setBackgroundColor(Color.parseColor("#64FF64"));
-            scoutTeamText1.setBackground(originalEditTextDrawable);
-            scoutTeamText2.setBackground(originalEditTextDrawable);
-        }
+//        TextView scoutTeamText1 = (TextView) this.findViewById(R.id.teamNumber1Edit);
+//        TextView scoutTeamText2 = (TextView) this.findViewById(R.id.teamNumber2Edit);
+//        TextView scoutTeamText3 = (TextView) this.findViewById(R.id.teamNumber3Edit);
+//        if((scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)){
+//            sendLetter = "A";
+//        } else if ((scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)){
+//            sendLetter = "B";
+//        } else if ((scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)) {
+//            sendLetter ="C";
+//        }
+//        if ((scoutNumber==1)||((3<scoutNumber)&&(scoutNumber<7))){
+//            scoutTeamText1.setBackgroundColor(Color.parseColor("#64FF64"));
+//            scoutTeamText2.setBackground(originalEditTextDrawable);
+//            scoutTeamText3.setBackground(originalEditTextDrawable);
+//        } else if ((scoutNumber==2)||(6<scoutNumber)&&(scoutNumber<10)) {
+//            scoutTeamText2.setBackgroundColor(Color.parseColor("#64FF64"));
+//            scoutTeamText1.setBackground(originalEditTextDrawable);
+//            scoutTeamText3.setBackground(originalEditTextDrawable);
+//        } else if ((scoutNumber==3)||((9<scoutNumber)&&(scoutNumber<13))){
+//            scoutTeamText3.setBackgroundColor(Color.parseColor("#64FF64"));
+//            scoutTeamText1.setBackground(originalEditTextDrawable);
+//            scoutTeamText2.setBackground(originalEditTextDrawable);
+//        }
 
 
 
@@ -306,38 +342,49 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String fetchedTeamNum = dataSnapshot.getValue().toString();
                 teamNum = Integer.parseInt(fetchedTeamNum);
+                TextView matchNumberTextView = (TextView) findViewById(R.id.matchNumberText);
+                matchNumberTextView.setText("Q" + Integer.toString(matchNumber) + ": " + teamNum);
+                try {
+                    setImage();
+                } catch (IOException e){
+                    throw new RuntimeException(e);
+                }
+
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 System.out.println("The read failed: " + databaseError.getCode());
+                Toast.makeText(getBaseContext(), "Match Not Available", Toast.LENGTH_LONG).show();
             }
         });
-        if (schedule.hasSchedule()) {
-            EditText teamNumber1Edit = (EditText) findViewById(R.id.teamNumber1Edit);
-            EditText teamNumber2Edit = (EditText) findViewById(R.id.teamNumber2Edit);
-            EditText teamNumber3Edit = (EditText) findViewById(R.id.teamNumber3Edit);
-            Log.i("Schedule before display", schedule.getSchedule().toString());
-            try {
-                if (scoutNumber < 4) {
-                    JSONArray red = schedule.getSchedule().getJSONObject("redTeamNumbers").getJSONArray(Integer.toString(matchNumber));
-                    teamNumber1Edit.setText(red.getString(0));
-                    teamNumber2Edit.setText(red.getString(1));
-                    teamNumber3Edit.setText(red.getString(2));
-                } else {
-                    JSONArray blue = schedule.getSchedule().getJSONObject("blueTeamNumbers").getJSONArray(Integer.toString(matchNumber));
-                    teamNumber1Edit.setText(blue.getString(0));
-                    teamNumber2Edit.setText(blue.getString(1));
-                    teamNumber3Edit.setText(blue.getString(2));
-                }
-            } catch (JSONException jsone) {
-                Log.e("JSON error", "Failed to read JSON");
-                Toast.makeText(this, "Match Not Available", Toast.LENGTH_LONG).show();
-                teamNumber1Edit.setText("");
-                teamNumber2Edit.setText("");
-                teamNumber3Edit.setText("");
-            }
-        }
+//        WebView webView = (WebView) findViewById(R.id.webView);
+//        webView.loadUrl("http://imgur.com/gallery/CGPuC");
+//        if (schedule.hasSchedule()) {
+//            EditText teamNumber1Edit = (EditText) findViewById(R.id.teamNumber1Edit);
+//            EditText teamNumber2Edit = (EditText) findViewById(R.id.teamNumber2Edit);
+//            EditText teamNumber3Edit = (EditText) findViewById(R.id.teamNumber3Edit);
+//            Log.i("Schedule before display", schedule.getSchedule().toString());
+//            try {
+//                if (scoutNumber < 4) {
+//                    JSONArray red = schedule.getSchedule().getJSONObject("redTeamNumbers").getJSONArray(Integer.toString(matchNumber));
+//                    teamNumber1Edit.setText(red.getString(0));
+//                    teamNumber2Edit.setText(red.getString(1));
+//                    teamNumber3Edit.setText(red.getString(2));
+//                } else {
+//                    JSONArray blue = schedule.getSchedule().getJSONObject("blueTeamNumbers").getJSONArray(Integer.toString(matchNumber));
+//                    teamNumber1Edit.setText(blue.getString(0));
+//                    teamNumber2Edit.setText(blue.getString(1));
+//                    teamNumber3Edit.setText(blue.getString(2));
+//                }
+//            } catch (JSONException jsone) {
+//                Log.e("JSON error", "Failed to read JSON");
+//                Toast.makeText(this, "Match Not Available", Toast.LENGTH_LONG).show();
+//                teamNumber1Edit.setText("");
+//                teamNumber2Edit.setText("");
+//                teamNumber3Edit.setText("");
+//            }
+//        }
     }
 
 
@@ -355,21 +402,21 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    //onclicks for buttons on actionbar
+//    onclicks for buttons on actionbar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         //override button
         if (item.getItemId() == R.id.mainOverride) {
-            if (overridden && (!schedule.hasSchedule())) {
-                Toast.makeText(this, "Schedule not available. Please get schedule", Toast.LENGTH_LONG).show();
-                return false;
-            }
-            overridden = !overridden;
-            if (overridden) {
-                item.setTitle("Automate Schedule");
-            } else {
-                item.setTitle("Override Schedule");
-            }
+//            if (overridden && (!schedule.hasSchedule())) {
+//                Toast.makeText(this, "Schedule not available. Please get schedule", Toast.LENGTH_LONG).show();
+//                return false;
+//            }
+//            overridden = !overridden;
+//            if (overridden) {
+//                item.setTitle("Automate Schedule");
+//            } else {
+//                item.setTitle("Override Schedule");
+//            }
 
 
             //set scout id button
@@ -383,8 +430,7 @@ public class MainActivity extends AppCompatActivity {
 
             //get schedule button
         } else if (item.getItemId() == R.id.scheduleButton) {
-            Toast.makeText(this, "Requesting Schedule. Please Wait...", Toast.LENGTH_LONG).show();
-            schedule.getScheduleFromSuper(superName, uuid);
+            updateTeamNumbers();
         }
         return true;
     }
@@ -427,6 +473,7 @@ public class MainActivity extends AppCompatActivity {
                         highlightTeamNumberTexts();
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.putInt("scoutNumber", scoutNumber);
+                        updateTeamNumbers();
                         editor.commit();
                     }
                 })
@@ -471,86 +518,86 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //onclick for 'resend all unsent' button
-    public void resendAllUnsent(View view) {
-        resendAll("UNSENT_");
-    }
+//    //onclick for 'resend all unsent' button
+//    public void resendAllUnsent(View view) {
+////        resendAll("UNSENT_");
+////    }
+//
+//
+//
+//    //onclick for 'resend all' button
+//    public void resendAll(View view) {
+//        resendAll("");
+//    }
 
-
-
-    //onclick for 'resend all' button
-    public void resendAll(View view) {
-        resendAll("");
-    }
-
-
-    private void resendAll(String filter) {
-        List<String> fileNames = new ArrayList<>();
-        List<String> dataToSend = new ArrayList<>();
-        List<String> dataToSave = new ArrayList<>();
-        for (int i = 0; i < fileListAdapter.getCount(); i++) {
-            String name = fileListAdapter.getItem(i);
-            if (name.contains(filter)) {
-                String content = Utils.readFile(context, name);
-                if (content != null) {
-                    try {
-                        JSONObject data = new JSONObject(content);
-                        fileNames.add(name);
-                        dataToSave.add(data.toString());
-                    } catch (JSONException jsone) {
-                        Log.e("File Error", "Not a valid JSON in resend all");
-                        Toast.makeText(context, "Invalid format in file", Toast.LENGTH_LONG).show();
-                    }
-                }
-            }
-        }
-        for (int i = 0; i < dataToSave.size(); i++) {
-            String matchData = dataToSave.get(i);
-            String sendData;
-            try {
-                LocalTeamInMatchData previousData = (LocalTeamInMatchData)Utils.deserializeClass(matchData, LocalTeamInMatchData.class);
-                sendData = Utils.serializeClass(previousData.getFirebaseData());
-            } catch (Exception e) {
-                sendData = null;
-            }
-            dataToSend.add(sendData);
-        }
-        ConnectThread.ConnectThreadData data;
-        try {
-            data = new ConnectThread.ConnectThreadData(fileNames, dataToSave, dataToSend);
-        } catch (IllegalArgumentException iae) {
-            Log.i("File Error", "Error in File Data");
-            Toast.makeText(this, "Error in File Data", Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (data.size() != 0) {
-            new ConnectThread(context, superName, uuid, data).start();
-        }
-    }
+//
+//    private void resendAll(String filter) {
+//        List<String> fileNames = new ArrayList<>();
+//        List<String> dataToSend = new ArrayList<>();
+//        List<String> dataToSave = new ArrayList<>();
+//        for (int i = 0; i < fileListAdapter.getCount(); i++) {
+//            String name = fileListAdapter.getItem(i);
+//            if (name.contains(filter)) {
+//                String content = Utils.readFile(context, name);
+//                if (content != null) {
+//                    try {
+//                        JSONObject data = new JSONObject(content);
+//                        fileNames.add(name);
+//                        dataToSave.add(data.toString());
+//                    } catch (JSONException jsone) {
+//                        Log.e("File Error", "Not a valid JSON in resend all");
+//                        Toast.makeText(context, "Invalid format in file", Toast.LENGTH_LONG).show();
+//                    }
+//                }
+//            }
+//        }
+//        for (int i = 0; i < dataToSave.size(); i++) {
+//            String matchData = dataToSave.get(i);
+//            String sendData;
+//            try {
+//                LocalTeamInMatchData previousData = (LocalTeamInMatchData)Utils.deserializeClass(matchData, LocalTeamInMatchData.class);
+//                sendData = Utils.serializeClass(previousData.getFirebaseData());
+//            } catch (Exception e) {
+//                sendData = null;
+//            }
+//            dataToSend.add(sendData);
+//        }
+//        ConnectThread.ConnectThreadData data;
+//        try {
+//            data = new ConnectThread.ConnectThreadData(fileNames, dataToSave, dataToSend);
+//        } catch (IllegalArgumentException iae) {
+//            Log.i("File Error", "Error in File Data");
+//            Toast.makeText(this, "Error in File Data", Toast.LENGTH_LONG).show();
+//            return;
+//        }
+//        if (data.size() != 0) {
+//            new ConnectThread(context, superName, uuid, data).start();
+//        }
+//    }
 
 
 
     public void startScout(String editJSON, int matchNumber, int teamNumber) {
-        //collect the team number
-        if (teamNumber == -1) {
-            try {
-                if (((0<scoutNumber)&&(scoutNumber<4))||((9<scoutNumber)&&(scoutNumber<13))) {
-                    TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber1Edit);
-                    teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
-                } else if (((3<scoutNumber)&&(scoutNumber<7))||((12<scoutNumber)&&(scoutNumber<16))){
-                    TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber2Edit);
-                    teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
-                } else if (((6<scoutNumber)&&(scoutNumber<10))||((15<scoutNumber)&&(scoutNumber<19))) {
-                    TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber3Edit);
-                    teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
-                } else {
-                    throw new NumberFormatException();
-                }
-            } catch (NumberFormatException nfe) {
-                Toast.makeText(this, "Please enter valid team numbers", Toast.LENGTH_LONG).show();
-                return;
-            }
-        }
+//        //collect the team number
+//        if (teamNumber == -1) {
+//            try {
+//                if (((0<scoutNumber)&&(scoutNumber<4))||((9<scoutNumber)&&(scoutNumber<13))) {
+//                    TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber1Edit);
+//                    teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
+//                } else if (((3<scoutNumber)&&(scoutNumber<7))||((12<scoutNumber)&&(scoutNumber<16))){
+//                    TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber2Edit);
+//                    teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
+//                } else if (((6<scoutNumber)&&(scoutNumber<10))||((15<scoutNumber)&&(scoutNumber<19))) {
+//                    TextView scoutTeamText = (TextView) findViewById(R.id.teamNumber3Edit);
+//                    teamNumber = Integer.parseInt(scoutTeamText.getText().toString());
+//                } else {
+//                    throw new NumberFormatException();
+//                }
+//            } catch (NumberFormatException nfe) {
+//                Toast.makeText(this, "Please enter valid team numbers", Toast.LENGTH_LONG).show();
+//                return;
+//            }
+//        }
         fileListAdapter.stopFileObserver();
         //TODO
         final Intent nextActivity = new Intent(context, AutoActivity.class)
