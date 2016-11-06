@@ -29,8 +29,8 @@ public class TeamInMatchData {
     public Integer numLowShotsMadeTele;
     public Integer numLowShotsMissedTele;
 
-    public List<List<Float>> successfulDefenseCrossTimesAuto;
-    public List<List<Float>> failedDefenseCrossTimesAuto;
-    public List<List<Float>> successfulDefenseCrossTimesTele;
-    public List<List<Float>> failedDefenseCrossTimesTele;
+    public List<List<Float>> timesSuccessfulCrossedDefensesAuto;
+    public List<List<Float>> timesFailedCrossedDefensesAuto;
+    public List<List<Float>> timesSuccessfulCrossedDefensesTele;
+    public List<List<Float>> timesFailedCrossedDefensesTele;
 }

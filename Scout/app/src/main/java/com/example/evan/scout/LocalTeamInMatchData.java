@@ -30,10 +30,10 @@ public class LocalTeamInMatchData extends TeamInMatchData {
 
 
     public TeamInMatchData getFirebaseData() {
-        successfulDefenseCrossTimesAuto = localDefenseToFireBaseDefense(defenseTimesAuto, true);
-        failedDefenseCrossTimesAuto = localDefenseToFireBaseDefense(defenseTimesAuto, false);
-        successfulDefenseCrossTimesTele = localDefenseToFireBaseDefense(defenseTimesTele, true);
-        failedDefenseCrossTimesTele = localDefenseToFireBaseDefense(defenseTimesTele, false);
+        timesSuccessfulCrossedDefensesAuto = localDefenseToFireBaseDefense(defenseTimesAuto, true);
+        timesFailedCrossedDefensesAuto = localDefenseToFireBaseDefense(defenseTimesAuto, false);
+        timesSuccessfulCrossedDefensesTele = localDefenseToFireBaseDefense(defenseTimesTele, true);
+        timesFailedCrossedDefensesTele = localDefenseToFireBaseDefense(defenseTimesTele, false);
         ballsIntakedAuto = new ArrayList<>();
         for (int i = 0; i < isBallIntaked.size(); i++) {
             if (isBallIntaked.get(i)) {
