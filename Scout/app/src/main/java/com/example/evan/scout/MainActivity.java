@@ -261,7 +261,6 @@ public class MainActivity extends AppCompatActivity {
                     wv.loadUrl(urlString);
                 } else {
                     WebView wv = (WebView) findViewById(R.id.webView);
-                    wv.getSettings().setBuiltInZoomControls(true);
                     wv.getSettings().setUseWideViewPort(true);
                     wv.getSettings().setLoadWithOverviewMode(true);
                     wv.loadUrl("https://www.gopage.com/assets/public_assets/img/blank.gif");
