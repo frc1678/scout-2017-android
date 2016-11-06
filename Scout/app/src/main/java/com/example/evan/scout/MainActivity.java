@@ -513,7 +513,11 @@ public class MainActivity extends AppCompatActivity {
 
     //scout button on ui
     public void startScoutButton (View view) {
-        startScout(null, matchNumber, -1);
+        if (scoutNumber == -1){
+
+        } else {
+            startScout(null, matchNumber, -1);
+        }
     }
 
 
