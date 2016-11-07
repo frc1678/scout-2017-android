@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
     int teamNum;
     static String sendLetter;
     String matchNum = "1";
+    Boolean canProceed = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
 //        if (!schedule.hasSchedule()) {
 //            overridden = true;
 //        }
+        matchNumberEdit.setText(matchNum);
+        teamNumberEdit.setText(Integer.toString(teamNum));
 
         final DatabaseReference matchRef = mainRef.child("currentMatchNum");
         matchRef.addValueEventListener(new ValueEventListener() {
@@ -415,13 +418,11 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
                     String fetchedTeamNum = dataSnapshot.getValue().toString();
-                    if(fetchedTeamNum.length()>0){
-                        teamNum = Integer.parseInt(fetchedTeamNum);
-                    }
+                    teamNum = Integer.parseInt(fetchedTeamNum);
+                    EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
+                    teamNumberEdit.setText(Integer.toString(teamNum));
                     EditText matchNumberEdit = (EditText) findViewById(R.id.matchNumTextEdit);
                     matchNumberEdit.setText(getMatchNumber());
-                    EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
-                    teamNumberEdit.setText(fetchedTeamNum);
                     try {
                         setImage();
                     } catch (IOException e){
@@ -497,6 +498,7 @@ public class MainActivity extends AppCompatActivity {
                 teamNumberEdit.setEnabled(true);
                 EditText matchNumberEdit = (EditText) findViewById(R.id.matchNumTextEdit);
                 matchNumberEdit.setEnabled(true);
+                canProceed = false;
             } else {
                 item.setTitle("Override Schedule");
                 EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
@@ -505,13 +507,16 @@ public class MainActivity extends AppCompatActivity {
                 teamNumberEdit.setEnabled(false);
                 String newTeamNum = teamNumberEdit.getText().toString();
                 String newMatchNum = matchNumberEdit.getText().toString();
-                if((newMatchNum!=null) && (newTeamNum!=null)){
+                canProceed = true;
+                if((newMatchNum.length()>0) && (newTeamNum.length()>0)){
                     nameRef.child("scout"+scoutNumber).child("team").setValue(newTeamNum);
                     mainRef.child("currentMatchNum").setValue(newMatchNum);
                     updateTeamNumbers();
                     getMatchNumber();
                 } else {
                     Toast.makeText(context, "No changes have been made", Toast.LENGTH_LONG).show();
+                    updateTeamNumbers();
+                    matchNumberEdit.setText(getMatchNumber());
                 }
             }
 
@@ -617,7 +622,11 @@ public class MainActivity extends AppCompatActivity {
         if (scoutNumber == -1){
 
         } else {
-            startScout(null, matchNumber, -1);
+            if(canProceed){
+                startScout(null, matchNumber, -1);
+            } else {
+                Toast.makeText(context, "Confirm your changes before proceeding", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
