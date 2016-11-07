@@ -512,11 +512,11 @@ public class MainActivity extends AppCompatActivity {
                     nameRef.child("scout"+scoutNumber).child("team").setValue(newTeamNum);
                     mainRef.child("currentMatchNum").setValue(newMatchNum);
                     updateTeamNumbers();
-                    getMatchNumber();
+//                    getMatchNumber();
                 } else {
                     Toast.makeText(context, "No changes have been made", Toast.LENGTH_LONG).show();
                     updateTeamNumbers();
-                    matchNumberEdit.setText(getMatchNumber());
+//                    matchNumberEdit.setText(getMatchNumber());
                 }
             }
 
@@ -622,9 +622,10 @@ public class MainActivity extends AppCompatActivity {
         if (scoutNumber == -1){
 
         } else {
-            if(canProceed){
+            if((canProceed)&&(matchNumber>0)){
                 startScout(null, matchNumber, -1);
             } else {
+                getMatchNumber();
                 Toast.makeText(context, "Confirm your changes before proceeding", Toast.LENGTH_LONG).show();
             }
         }
