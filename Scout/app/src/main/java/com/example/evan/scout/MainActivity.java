@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
     //the id of the scout.  1-3 is red, 4-6 is blue
     private int scoutNumber;
-    String status;
+    String status = "default";
     //we highlight the edittext that has the team number that this scout needs to scout, but if they change their id we need to reset it
     //this is the original background that was with the edittext
     private Drawable originalEditTextDrawable;
