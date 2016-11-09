@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
     //the id of the scout.  1-3 is red, 4-6 is blue
     private int scoutNumber;
-
+    String status;
     //we highlight the edittext that has the team number that this scout needs to scout, but if they change their id we need to reset it
     //this is the original background that was with the edittext
     private Drawable originalEditTextDrawable;
@@ -763,11 +763,25 @@ public class MainActivity extends AppCompatActivity {
 
     public void listenForScoutNameChanged(){
         Log.e("currentScoutListener", "listening");
+        DatabaseReference statusRef = nameRef.child("scout"+scoutNumber).child("scoutStatus");
+        statusRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    status=dataSnapshot.getValue().toString();
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
         DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("currentUser");
         teamNumRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
+                if (dataSnapshot.exists()&&(status.equals("Requested"))) {
                     String currentUser = dataSnapshot.getValue().toString();
                     Log.e("currentUser", currentUser);
                     new AlertDialog.Builder(context)
