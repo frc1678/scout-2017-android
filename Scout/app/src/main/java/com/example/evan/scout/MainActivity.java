@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     static DatabaseReference teamRef = database.getReference("Teams");
     static DatabaseReference nameRef = database.getReference("scouts");
     DatabaseReference mainRef = database.getReference();
-    int teamNum;
+    Integer teamNum;
     static String sendLetter;
     String matchNum = "1";
     Boolean canProceed = true;
@@ -109,7 +109,6 @@ public class MainActivity extends AppCompatActivity {
 
         //see comment on this variable above
 //        originalEditTextDrawable = findViewById(R.id.teamNumber1Edit).getBackground();
-
         //get any values received from other activities
         preferences = getSharedPreferences(PREFERENCES_FILE, 0);
         overridden = getIntent().getBooleanExtra("overridden", false);
@@ -142,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
 //            overridden = true;
 //        }
         matchNumberEdit.setText(matchNum);
-        teamNumberEdit.setText(Integer.toString(teamNum));
+        //teamNumberEdit.setText(Integer.toString(teamNum));
 
         final DatabaseReference matchRef = mainRef.child("currentMatchNum");
         matchRef.addValueEventListener(new ValueEventListener() {
@@ -171,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
             highlightTeamNumberTexts();
         }
         nameRef.child("scout"+scoutNumber).child("mostRecentUser").setValue(scoutName);
-
+        listenForScoutNameChanged();
         //implement ui stuff
         //set the match number edittext's onclick to open a dialog.  We do this so the screen does not shrink and the user can see what he/she types
 //        final EditText matchNumberTextView = (EditText) findViewById(R.id.matchNumTextEdit);
@@ -274,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     String fetchedTeamNum = dataSnapshot.getValue().toString();
                     teamNum = Integer.parseInt(fetchedTeamNum);
+                    Log.e("teamNum", teamNum.toString());
                     if (json == null) {}
                     try {
                         wrapper.put(teamNum + "Q" + getMatchNumber(), new JSONObject(json));
@@ -409,7 +409,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     //fill in the edittexts with the team numbers found in the schedule
     public void updateTeamNumbers() {
         final DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("team");
@@ -418,6 +417,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
                     String fetchedTeamNum = dataSnapshot.getValue().toString();
+                    Log.e("fetchedTeamNum", fetchedTeamNum);
                     teamNum = Integer.parseInt(fetchedTeamNum);
                     EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
                     teamNumberEdit.setText(Integer.toString(teamNum));
@@ -526,15 +526,15 @@ public class MainActivity extends AppCompatActivity {
             setScoutNumber();
 
 
-        }else if (item.getItemId() == R.id.setScoutName) {
+        }/*else if (item.getItemId() == R.id.setScoutName) {
             setScoutName(null);
 
 
             //get schedule button
-        } else if (item.getItemId() == R.id.scheduleButton) {
+        } */ /*else if (item.getItemId() == R.id.scheduleButton) {
             updateTeamNumbers();
             getMatchNumber();
-        }
+        }*/
         return true;
     }
 
@@ -623,6 +623,8 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
             if((canProceed)&&(matchNumber>0)){
+                Log.e("Start Scout", "Starting Scout");
+                nameRef.child("scout"+scoutNumber).child("scoutStatus").setValue("none");
                 startScout(null, matchNumber, -1);
             } else {
                 getMatchNumber();
@@ -717,19 +719,16 @@ public class MainActivity extends AppCompatActivity {
         final Intent nextActivity = new Intent(context, AutoActivity.class)
                 .putExtra("matchNumber", matchNumber).putExtra("overridden", overridden)
                 .putExtra("teamNumber", teamNumber).putExtra("scoutName", scoutName).putExtra("scoutNumber", scoutNumber).putExtra("previousData", editJSON);
-        setScoutName(new Runnable() {
-            @Override
-            public void run() {
+                Log.e("Starting Scout", "runnable");
                 startActivity(nextActivity.putExtra("scoutName", scoutName));
-            }
-        });
-    }
+        }
+
 
 
 
     //in order to redisplay the dialog to ask for scout initials, we start a new method, and recursively call the method if the input is wrong
     //on Finish is what to happen on click
-    private void setScoutName(final Runnable onFinish) {
+    /*private void setScoutName(final Runnable onFinish) {
         final EditText editText = new EditText(this);
         editText.setHint(scoutName);
         new AlertDialog.Builder(this)
@@ -760,5 +759,39 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+    }*/
+
+    public void listenForScoutNameChanged(){
+        Log.e("currentScoutListener", "listening");
+        DatabaseReference teamNumRef = nameRef.child("scout"+scoutNumber).child("currentUser");
+        teamNumRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    String currentUser = dataSnapshot.getValue().toString();
+                    Log.e("currentUser", currentUser);
+                    new AlertDialog.Builder(context)
+                            .setTitle("")
+                            .setMessage("Are you " + currentUser + "?")
+                            .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    nameRef.child("scout" + scoutNumber).child("scoutStatus").setValue("confirmed");
+                                }
+                            })
+                            .setNegativeButton("Guest", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    nameRef.child("scout" + scoutNumber).child("scoutStatus").setValue("guest");
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 }

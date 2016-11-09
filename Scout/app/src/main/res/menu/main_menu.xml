@@ -5,16 +5,16 @@
         android:id="@+id/mainOverride"
         android:title="Override Schedule"
         app:showAsAction = "always"/>
-    <item
+    <!--<item
         android:title="Get Schedule"
         android:id="@+id/scheduleButton"
-        app:showAsAction = "ifRoom" />
+        app:showAsAction = "ifRoom" /> -->
     <item
         android:id="@+id/setScoutIDButton"
         android:title="Set Scout ID"
         app:showAsAction="ifRoom"/>
-    <item
+    <!--<item
         android:id="@+id/setScoutName"
         android:title="Set Scout Name"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom"/>-->
 </menu>
