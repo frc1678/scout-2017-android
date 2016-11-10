@@ -77,7 +77,7 @@ public abstract class DataActivity extends AppCompatActivity {
         }
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setBackgroundDrawable(actionBarBackgroundColor);
+            actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#4169e1")));
         }
         Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
             @Override

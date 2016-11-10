@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -85,12 +86,14 @@ public class MainActivity extends AppCompatActivity {
 
     //initials of scout scouting
     private String scoutName;
-
+    boolean isRed;
+    boolean done;
     //save a reference to this activity for subclasses
     private final MainActivity context = this;
-
+    ArrayList<String> blueTeams = new ArrayList<String>();
     static FirebaseDatabase database = FirebaseDatabase.getInstance();
     static DatabaseReference timdRef = database.getReference("TempTeamInMatchDatas");
+    static DatabaseReference matchRef = database.getReference("Matches");
     static DatabaseReference teamRef = database.getReference("Teams");
     static DatabaseReference nameRef = database.getReference("scouts");
     DatabaseReference mainRef = database.getReference();
@@ -148,19 +151,22 @@ public class MainActivity extends AppCompatActivity {
         matchRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()){
+                if (dataSnapshot.exists()) {
                     matchNum = dataSnapshot.getValue().toString();
                     updateTeamNumbers();
-                }else{
+                } else {
                     matchNum = "1";
                 }
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 System.out.println("The read failed: " + databaseError.getCode());
                 Toast.makeText(getBaseContext(), "Match Not Available", Toast.LENGTH_LONG).show();
             }
         });
+
+        checkScoutingAlliance();
 
         scoutNumber = preferences.getInt("scoutNumber", -1);
         //if we don't have scout id, get it
@@ -371,17 +377,17 @@ public class MainActivity extends AppCompatActivity {
 
 
         //change ui depending on color
-        if (scoutNumber < 4) {
+        //if (isRed) {
             //update paired device name
-            superName = redSuperName;
+            //superName = redSuperName;
 
             //change actionbar color
-            ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) {
+            //ActionBar actionBar = getSupportActionBar();
+            //if (actionBar != null) {
                 //red
-                actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#C40000")));
-            }
-        } else {
+                //actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#C40000")));
+            //}
+        //} //else {
             //update paired device name
             superName = blueSuperName;
 
@@ -390,20 +396,18 @@ public class MainActivity extends AppCompatActivity {
             if (actionBar != null) {
                 //blue
                 actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#4169e1")));
-            }
+            //}
         }
         if (fileListAdapter != null) {
             fileListAdapter.setSuperName(superName);
         }
         updateTeamNumbers();
-        if((scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)){
+        if((scoutNumber==1)||(scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)||(scoutNumber==13)||(scoutNumber==16)){
             return "-A";
-        } else if ((scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)){
+        } else if ((scoutNumber==2)||(scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)||(scoutNumber==14)||(scoutNumber==17)){
             return "-B";
-        } else if ((scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)) {
+        } else if ((scoutNumber==3)||(scoutNumber==6)||(scoutNumber==9)||(scoutNumber==12)||(scoutNumber==15)||(scoutNumber==18)) {
             return "-C";
-        } else if(scoutNumber>12){
-            return "YOUSHANT";
         } else {
             return "";
         }
@@ -810,5 +814,56 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+    public void checkWhenDone(){
+        DatabaseReference statusRef = matchRef.child(matchNum).child("blueAllianceTeamNumbers");
+        statusRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                done = true;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+    public void checkScoutingAlliance(){
+        Log.e("alliance", "checked");
+        DatabaseReference statusRef = matchRef.child(matchNum).child("blueAllianceTeamNumbers");
+        statusRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                String teamNumbers = dataSnapshot.getValue().toString();
+                blueTeams.add(teamNumbers);
+                Log.e("teams", blueTeams.toString());
+                if(done){
+                    if(blueTeams != null){
+                        if(blueTeams.contains(matchNum)){
+                            Log.e("scouting", "blueAlliance");
+                            isRed = false;
+                            blueTeams.clear();
+                        }else{
+                            Log.e("scouting", "redAlliance");
+                            isRed = true;
+                            blueTeams.clear();
+                        }
+                    }
+                }
+            }
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
     }
 }
