@@ -402,7 +402,7 @@ public class MainActivity extends AppCompatActivity {
             fileListAdapter.setSuperName(superName);
         }
         updateTeamNumbers();
-        if((scoutNumber==1)||(scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)||(scoutNumber==13)||(scoutNumber==16)){
+        /*if((scoutNumber==1)||(scoutNumber==4)||(scoutNumber==7)||(scoutNumber==10)||(scoutNumber==13)||(scoutNumber==16)){
             return "-A";
         } else if ((scoutNumber==2)||(scoutNumber==5)||(scoutNumber==8)||(scoutNumber==11)||(scoutNumber==14)||(scoutNumber==17)){
             return "-B";
@@ -410,7 +410,8 @@ public class MainActivity extends AppCompatActivity {
             return "-C";
         } else {
             return "";
-        }
+        }*/
+        return "-" + scoutNumber;
     }
 
 
