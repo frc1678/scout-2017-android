@@ -310,6 +310,7 @@ public abstract class DataActivity extends AppCompatActivity {
 
         collectedData.matchNumber = this.intent.getIntExtra("matchNumber", -1);
         collectedData.teamNumber = this.intent.getIntExtra("teamNumber", -1);
+        Log.e("teamNumberReceived", Integer.toString(collectedData.teamNumber));
     }
 
 

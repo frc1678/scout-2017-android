@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
     static String sendLetter;
     String matchNum = "1";
     Boolean canProceed = true;
+    EditText teamNumberEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             editor.commit();
         }
 
-        EditText teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
+        teamNumberEdit = (EditText) findViewById(R.id.teamNumEdit);
         teamNumberEdit.setEnabled(false);
         EditText matchNumberEdit = (EditText) findViewById(R.id.matchNumTextEdit);
         matchNumberEdit.setEnabled(false);
@@ -716,9 +717,11 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //        fileListAdapter.stopFileObserver();
         //TODO
+        Log.e("teamNumberScouting", teamNumberEdit.getText().toString());
+        Log.e("matchNumberScouting", Integer.toString(matchNumber));
         final Intent nextActivity = new Intent(context, AutoActivity.class)
                 .putExtra("matchNumber", matchNumber).putExtra("overridden", overridden)
-                .putExtra("teamNumber", teamNumber).putExtra("scoutName", scoutName).putExtra("scoutNumber", scoutNumber).putExtra("previousData", editJSON);
+                .putExtra("teamNumber", Integer.parseInt(teamNumberEdit.getText().toString())).putExtra("scoutName", scoutName).putExtra("scoutNumber", scoutNumber).putExtra("previousData", editJSON);
                 Log.e("Starting Scout", "runnable");
                 startActivity(nextActivity.putExtra("scoutName", scoutName));
         }
