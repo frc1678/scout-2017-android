@@ -804,6 +804,8 @@ public class MainActivity extends AppCompatActivity {
                             .setNegativeButton("Guest", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     nameRef.child("scout" + scoutNumber).child("scoutStatus").setValue("guest");
+                                    dialog.dismiss();
+                                    enterGuestDialog();
                                 }
                             })
                             .setIcon(android.R.drawable.ic_dialog_alert)
@@ -816,6 +818,30 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+    public void enterGuestDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter you first name with no caps");
+        final EditText input = new EditText(this);
+        input.setText("");
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
+        input.setGravity(1);
+        builder.setView(input);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                scoutName = input.getText().toString();
+                Log.e("scoutName", scoutName);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
     public void checkWhenDone(){
         DatabaseReference statusRef = matchRef.child(matchNum).child("blueAllianceTeamNumbers");
