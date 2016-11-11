@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     private Drawable originalEditTextDrawable;
 
     //initials of scout scouting
-    private String scoutName;
+    String scoutName;
     boolean isRed;
     boolean done;
     //save a reference to this activity for subclasses
@@ -790,13 +790,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()&&(status.equals("Requested"))) {
-                    String currentUser = dataSnapshot.getValue().toString();
+                    final String currentUser = dataSnapshot.getValue().toString();
                     Log.e("currentUser", currentUser);
                     new AlertDialog.Builder(context)
                             .setTitle("")
                             .setMessage("Are you " + currentUser + "?")
                             .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
+                                    scoutName = currentUser;
                                     nameRef.child("scout" + scoutNumber).child("scoutStatus").setValue("confirmed");
                                 }
                             })
