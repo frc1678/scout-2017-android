@@ -98,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
     static DatabaseReference nameRef = database.getReference("scouts");
     DatabaseReference mainRef = database.getReference();
     Integer teamNum;
-    static String sendLetter;
     String matchNum = "1";
     Boolean canProceed = true;
     EditText teamNumberEdit;
@@ -291,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
                     if (highlightTeamNumberTexts().equals("YOUSHANT")){
                         Toast.makeText(getBaseContext(), "You shouldn't be sending data", Toast.LENGTH_LONG).show();
                     } else {
-                        timdRef.child(teamNum + "Q" + getMatchNumber() + highlightTeamNumberTexts()).setValue(data);
+                        timdRef.child(teamNum + "Q" + matchNum + highlightTeamNumberTexts()).setValue(data);
                     }
 
 
@@ -515,9 +514,10 @@ public class MainActivity extends AppCompatActivity {
                 String newMatchNum = matchNumberEdit.getText().toString();
                 canProceed = true;
                 if((newMatchNum.length()>0) && (newTeamNum.length()>0)){
-                    nameRef.child("scout"+scoutNumber).child("team").setValue(newTeamNum);
-                    mainRef.child("currentMatchNum").setValue(newMatchNum);
-                    updateTeamNumbers();
+                    matchNum = newMatchNum;
+//                    nameRef.child("scout"+scoutNumber).child("team").setValue(newTeamNum);
+//                    mainRef.child("currentMatchNum").setValue(newMatchNum);
+//                    updateTeamNumbers();
 //                    getMatchNumber();
                 } else {
                     Toast.makeText(context, "No changes have been made", Toast.LENGTH_LONG).show();
