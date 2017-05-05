@@ -13,6 +13,11 @@ android {
         multiDexEnabled true
 
     }
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE-FIREBASE.txt'
+        exclude 'META-INF/NOTICE'
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -23,16 +28,10 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.instabug.library:instabug:2.3.1'
-    compile 'com.android.support:appcompat-v7:23.1.0'
-    compile 'com.google.code.gson:gson:2.2.4'
-    compile 'com.google.firebase:firebase-database:9.4.0'
-    compile 'com.google.firebase:firebase-auth:9.4.0'
-    compile 'com.google.firebase:firebase-config:9.4.0'
-    compile 'com.google.firebase:firebase-messaging:9.4.0'
-    compile 'com.google.firebase:firebase-crash:9.4.0'
-    compile 'com.google.firebase:firebase-analytics:9.4.0'
-
+    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.google.firebase:firebase-database:9.0.2'
+    compile 'com.google.firebase:firebase-storage:9.0.2'
+    compile 'com.instabug.library:instabug:3+'
+    compile 'com.google.code.gson:gson:2.3.1'
 }
 apply plugin: 'com.google.gms.google-services'

@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         myRef.child("currentScouts").child(scoutName).setValue(1);
-
+        //testing
         //implement ui stuff
         //set the match number edittext's onclick to open a dialog.  We do this so the screen does not shrink and the user can see what he/she types
         final EditText matchNumberTextView = (EditText) findViewById(R.id.matchNumberText);
