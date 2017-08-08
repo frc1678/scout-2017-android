@@ -118,6 +118,9 @@ public abstract class DataActivity extends AppCompatActivity {
                 final ToggleButton button1 = toggleCreator.getToggleButton(LinearLayout.LayoutParams.MATCH_PARENT, false);
                 final ToggleButton button2 = toggleCreator.getToggleButton(LinearLayout.LayoutParams.MATCH_PARENT, false);
 
+                DataManager.addZeroTierJsonData(button1.getText().toString(), false);
+                DataManager.addZeroTierJsonData(button2.getText().toString(), false);
+
                 liftOffCreator = new UIComponentCreator.UIButtonCreator(this, null);
                 toggleLayout.addView(liftOffCreator.addButton(button1, button2));
 
@@ -150,8 +153,6 @@ public abstract class DataActivity extends AppCompatActivity {
                     }
                 }
             }
-
-
         }
 
                     LinearLayout shotLayout = (LinearLayout)findViewById(getShotXML());
@@ -181,7 +182,7 @@ public abstract class DataActivity extends AppCompatActivity {
 
         LinearLayout gearLayout = (LinearLayout)findViewById(getOtherXML());
         gearCreator = new UIComponentCreator.UIGearCreator(this, null);
-        gearCreator.addButton(gearLayout);
+        gearLayout.addView(gearCreator.addButton());
         gearLayout.addView(getFillerSpace(1f));
 
                     LinearLayout counterLayout = (LinearLayout) findViewById(getCounterXML());
@@ -214,12 +215,15 @@ public abstract class DataActivity extends AppCompatActivity {
 
 
     private void updateData() {
-        if(toggleCreator != null){
+        if(activityName() == "tele"){
+            Log.e("toggledCalled", "called");
             List<View> toggleList = toggleCreator.getComponentViews();
+            Log.e("toggledCalled", "called");
             for (int i = 0; i < toggleList.size(); i++) {
+                Log.e("toggledCalled", "called");
                 ToggleButton toggleButton = (ToggleButton) toggleList.get(i);
                 try {
-                    DataManager.addZeroTierJsonData("didBecomeIncapacitated", toggleButton.isChecked());
+                    DataManager.addZeroTierJsonData(toggleButton.getText().toString(), toggleButton.isChecked());
                 } catch (Exception e) {
                     Log.e("Data Error", "Failed to add toggle " + Integer.toString(i) + " to Data");
                     Toast.makeText(this, "Invalid data in counter" + Integer.toString(i), Toast.LENGTH_LONG).show();
@@ -228,9 +232,15 @@ public abstract class DataActivity extends AppCompatActivity {
             }
         }
 
+        Log.e("HOPESIZE", counterCreator.getComponentViews().size()+"");
         List<View> currentTextViews = counterCreator.getComponentViews();
+        Log.e("HOPESIZE", currentTextViews.size()+"");
         for (int i = 0; i < currentTextViews.size(); i++) {
+            if(currentTextViews.get(i) != null){
+                Log.e("MOREHOPE", i+"");
+            }
             try {
+                Log.e("keyCOUNTER", getCounterData().get(i));
                 DataManager.addZeroTierJsonData(getCounterData().get(i), Integer.parseInt(((TextView) currentTextViews.get(i)).getText().toString()));
             } catch (Exception e) {
                 Log.e("Data Error", "Failed to add counter" + Integer.toString(i) + " num to Data");
@@ -238,11 +248,26 @@ public abstract class DataActivity extends AppCompatActivity {
                 return;
             }
         }
+
+        Log.e("check", "CHECKGEAR");
+        List<String> gearLifts = Arrays.asList("allianceWall", "boiler", "hpStation");
+        List<Object> gearNums = new ArrayList<>();
+        Log.e("check", "CHECKGEAR");
+        gearNums.add(gearCreator.getNumGearsLiftOne());
+        gearNums.add(gearCreator.getNumGearsLiftTwo());
+        gearNums.add(gearCreator.getNumGearsLiftThree());
+        Log.e("CHECKPOINT", "CHECKGEAR");
+        if(activityName() == "auto"){
+            Log.e("gearData", "auto");
+            DataManager.addOneTierJsonData(false, "gearsPlacedByLiftAuto", gearLifts, gearNums);
+        }else if(activityName() == "tele"){
+            Log.e("gearData", "tele");
+            DataManager.addOneTierJsonData(false, "gearsPlacedByLiftTele", gearLifts, gearNums);
+        }
     }
 
-
-
     private Intent prepareIntent(Class clazz) {
+        Log.e("intentCalled", "called");
         updateData();
         Intent intent = new Intent(this, clazz);
         intent.putExtras(this.intent);
@@ -267,10 +292,6 @@ public abstract class DataActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.buttonNext) {
-            if(activityName() == "tele"){
-                Log.e("collectedData", DataManager.collectedData.toString());
-                Utils.SendFirebaseData(databaseReference);
-            }
             synchronized (readyForNextActivityLock) {
                 if (!readyForNextActivity) {
                     Log.i("Scout Error", "Tried to move on too quickly!");
@@ -281,12 +302,16 @@ public abstract class DataActivity extends AppCompatActivity {
             Intent intent = prepareIntent(getNextActivityClass());
             Long stopTime = Calendar.getInstance().getTimeInMillis();
             Log.i("Starting next Activity!", "Time to update and serialize data: " + Long.toString(stopTime - startTime) + "ms");
+
+            if(activityName() == "tele"){
+                Log.e("collectedData", DataManager.collectedData.toString());
+                Utils.SendFirebaseData(databaseReference);
+            }
+
             startActivity(intent);
         }
         return true;
     }
-
-
 
     @Override
     public void onBackPressed() {

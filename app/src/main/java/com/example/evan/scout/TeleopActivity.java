@@ -10,7 +10,7 @@ public class TeleopActivity extends DataActivity {
         return formatList(Arrays.asList("highShotTele", "lowShotTele"));
     }
     public List<String> getToggleData() {
-        return formatList(Arrays.asList("didGetDisabled", "didGetIncapacitated"));
+        return formatList(Arrays.asList("didStartDisabled", "didBecomeIncapacitated"));
     }
     public List<String> getCounterData() {
         return formatList(Arrays.asList("numGroundGearIntakesTele", "numHumanGearIntakesTele",

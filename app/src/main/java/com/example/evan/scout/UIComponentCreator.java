@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.CountDownTimer;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
@@ -174,7 +175,7 @@ public class UIComponentCreator {
             Log.e("counterB", plus.getText().toString());
 
             currentCounterComponent++;
-            super.componentViews.add(counterLayout);
+            super.componentViews.add(valueTV);
             return counterLayout;
         }
     }
@@ -183,6 +184,7 @@ public class UIComponentCreator {
     public static class UIButtonCreator extends UIComponentCreator {
         private long startTime;
         private long endTime;
+        private boolean didLiftOff;
         private Activity context;
 
         public UIButtonCreator(Activity context, List<String> componentNames) {
@@ -191,6 +193,7 @@ public class UIComponentCreator {
         }
 
         public Button addButton(final ToggleButton button1, final ToggleButton button2) {
+            resetLiftOff();
             //add button to row
             final Button liftOffButton = getBasicButton(LinearLayout.LayoutParams.MATCH_PARENT, 0.4f);
             liftOffButton.setText("Ready For LiftOff");
@@ -232,6 +235,8 @@ public class UIComponentCreator {
                             cdt.cancel();
                             endTime = System.currentTimeMillis();
                             float totalTime = (endTime - startTime)/1000;
+                            DataManager.addZeroTierJsonData("didLiftoff", true);
+                            DataManager.addZeroTierJsonData("liftoffTime", totalTime);
                             //add to sd card
                             dialog.dismiss();
                         }
@@ -254,6 +259,10 @@ public class UIComponentCreator {
 
             return liftOffButton;
         }
+        public void resetLiftOff(){
+            DataManager.addZeroTierJsonData("didLiftoff", false);
+            DataManager.addZeroTierJsonData("liftoffTime", 0);
+        }
     }
 
     public static class UIGearCreator extends UIComponentCreator {
@@ -270,7 +279,7 @@ public class UIComponentCreator {
             this.context = context;
         }
 
-        public void addButton(LinearLayout parent){
+        public Button addButton(){
             final Button gearButton = getBasicButton(LinearLayout.LayoutParams.MATCH_PARENT, 0.7f);
             gearButton.setText("Gear Placed");
             gearButton.setOnClickListener(new View.OnClickListener() {
@@ -374,8 +383,13 @@ public class UIComponentCreator {
                     return true;
                 }
             });
-            parent.addView(gearButton);
+
+            return gearButton;
         }
+
+        public int getNumGearsLiftOne() {   return numGearsLiftOne;}
+        public int getNumGearsLiftTwo() {   return numGearsLiftTwo;}
+        public int getNumGearsLiftThree() {   return numGearsLiftThree;}
     }
 
     public static class UIShotCreator extends UIComponentCreator {

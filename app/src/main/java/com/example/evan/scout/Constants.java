@@ -12,8 +12,8 @@ public class Constants {
     public static final String COLOR_GREEN = "#65C423";
     static {
         Map<String, String> initialKeysToTitles = new HashMap<String, String>() {{
-            put("didGetDisabled", "Disabled");
-            put("didGetIncapacitated", "Incapacitated");
+            put("didStartDisabled", "Disabled");
+            put("didBecomeIncapacitated", "Incapacitated");
             put("numHoppersUsedAuto", "Hoppers Used Auto");
             put("highShotAuto", "highShotAuto");
             put("lowShotAuto", "lowShotAuto");
