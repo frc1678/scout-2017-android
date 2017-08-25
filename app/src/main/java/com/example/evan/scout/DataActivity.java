@@ -29,7 +29,9 @@ import android.widget.ToggleButton;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,7 +40,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +62,10 @@ public abstract class DataActivity extends AppCompatActivity {
     public Boolean shouldSpaceToggles() {return false;}
     public Boolean doTogglesDepend() {return false;}
 
+    public static boolean saveTeleData = false;
+    public static boolean saveAutoData = false;
+    public static String activityName;
+
     public final Activity context = this;
 
     private Intent intent;
@@ -74,12 +82,19 @@ public abstract class DataActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if(!saveTeleData){
+            DataManager.addZeroTierJsonData("didLiftoff", false);
+            DataManager.addZeroTierJsonData("liftoffTime", 0);
+        }
+
         if(activityName() == "auto"){
             setContentView(R.layout.activity_auto);
         }else if(activityName() == "tele"){
             setContentView(R.layout.activity_teleop);
         }
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        activityName = activityName();
         intent = getIntent();
         databaseReference = FirebaseDatabase.getInstance().getReference();
 //        setTitle("Scout Team " + intent.getIntExtra("teamNumber", -1));
@@ -118,8 +133,15 @@ public abstract class DataActivity extends AppCompatActivity {
                 final ToggleButton button1 = toggleCreator.getToggleButton(LinearLayout.LayoutParams.MATCH_PARENT, false);
                 final ToggleButton button2 = toggleCreator.getToggleButton(LinearLayout.LayoutParams.MATCH_PARENT, false);
 
-                DataManager.addZeroTierJsonData(button1.getText().toString(), false);
-                DataManager.addZeroTierJsonData(button2.getText().toString(), false);
+                if(saveTeleData && activityName() == "tele"){
+                    try {
+                        button1.setChecked(DataManager.collectedData.getBoolean(getToggleData().get(0)));
+                        button2.setChecked(DataManager.collectedData.getBoolean(getToggleData().get(1)));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
 
                 liftOffCreator = new UIComponentCreator.UIButtonCreator(this, null);
                 toggleLayout.addView(liftOffCreator.addButton(button1, button2));
@@ -184,6 +206,19 @@ public abstract class DataActivity extends AppCompatActivity {
         gearCreator = new UIComponentCreator.UIGearCreator(this, null);
         gearLayout.addView(gearCreator.addButton());
         gearLayout.addView(getFillerSpace(1f));
+        try {
+            if((saveAutoData && activityName() == "auto")){
+                gearCreator.setNumGearsLiftOne(DataManager.collectedData.getJSONObject("gearsPlacedByLiftAuto").getInt("hpStation"));
+                gearCreator.setNumGearsLiftTwo(DataManager.collectedData.getJSONObject("gearsPlacedByLiftAuto").getInt("allianceWall"));
+                gearCreator.setNumGearsLiftThree(DataManager.collectedData.getJSONObject("gearsPlacedByLiftAuto").getInt("boiler"));
+            }else if(saveTeleData && activityName() == "tele"){
+                gearCreator.setNumGearsLiftOne(DataManager.collectedData.getJSONObject("gearsPlacedByLiftTele").getInt("hpStation"));
+                gearCreator.setNumGearsLiftTwo(DataManager.collectedData.getJSONObject("gearsPlacedByLiftTele").getInt("allianceWall"));
+                gearCreator.setNumGearsLiftThree(DataManager.collectedData.getJSONObject("gearsPlacedByLiftTele").getInt("boiler"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
                     LinearLayout counterLayout = (LinearLayout) findViewById(getCounterXML());
                     List<String> counterNames = new ArrayList<>();
@@ -193,9 +228,9 @@ public abstract class DataActivity extends AppCompatActivity {
                     counterCreator = new UIComponentCreator.UICounterCreator(this, counterNames);
                     for (int i = 0; i < getCounterData().size(); i++) {
                         if(i == (getCounterData().size() - 1) && activityName() == "tele"){
-                            gearLayout.addView(counterCreator.addCounter());
+                            gearLayout.addView(counterCreator.addCounter(getCounterData().get(i)));
                         }else{
-                            counterLayout.addView(counterCreator.addCounter());
+                            counterLayout.addView(counterCreator.addCounter(getCounterData().get(i)));
                             if(activityName() == "tele"){
                                 Log.e("telecounter", "counterMade"+i);
                             }
@@ -214,16 +249,14 @@ public abstract class DataActivity extends AppCompatActivity {
 
 
 
-    private void updateData() {
+    private void updateData() throws JSONException {
         if(activityName() == "tele"){
-            Log.e("toggledCalled", "called");
             List<View> toggleList = toggleCreator.getComponentViews();
-            Log.e("toggledCalled", "called");
             for (int i = 0; i < toggleList.size(); i++) {
-                Log.e("toggledCalled", "called");
                 ToggleButton toggleButton = (ToggleButton) toggleList.get(i);
                 try {
-                    DataManager.addZeroTierJsonData(toggleButton.getText().toString(), toggleButton.isChecked());
+                    Log.e("KEYTOGGLE", getToggleData().get(i));
+                    DataManager.addZeroTierJsonData(getToggleData().get(i), toggleButton.isChecked());
                 } catch (Exception e) {
                     Log.e("Data Error", "Failed to add toggle " + Integer.toString(i) + " to Data");
                     Toast.makeText(this, "Invalid data in counter" + Integer.toString(i), Toast.LENGTH_LONG).show();
@@ -250,7 +283,7 @@ public abstract class DataActivity extends AppCompatActivity {
         }
 
         Log.e("check", "CHECKGEAR");
-        List<String> gearLifts = Arrays.asList("allianceWall", "boiler", "hpStation");
+        List<String> gearLifts = Arrays.asList("hpStation", "allianceWall", "boiler");
         List<Object> gearNums = new ArrayList<>();
         Log.e("check", "CHECKGEAR");
         gearNums.add(gearCreator.getNumGearsLiftOne());
@@ -268,7 +301,11 @@ public abstract class DataActivity extends AppCompatActivity {
 
     private Intent prepareIntent(Class clazz) {
         Log.e("intentCalled", "called");
-        updateData();
+        try {
+            updateData();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         Intent intent = new Intent(this, clazz);
         intent.putExtras(this.intent);
         try {
@@ -305,9 +342,10 @@ public abstract class DataActivity extends AppCompatActivity {
 
             if(activityName() == "tele"){
                 Log.e("collectedData", DataManager.collectedData.toString());
-                Utils.SendFirebaseData(databaseReference);
+                String jsonString = DataManager.collectedData.toString();
+                Map<String, Object> jsonMap = new Gson().fromJson(jsonString, new TypeToken<HashMap<String, Object>>() {}.getType());
+                databaseReference.child("TempTeamInMatchDatas").child(DataManager.subTitle).setValue(jsonMap);
             }
-
             startActivity(intent);
         }
         return true;
@@ -315,20 +353,41 @@ public abstract class DataActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        new AlertDialog.Builder(this)
-                .setTitle("Stop Scouting")
-                .setMessage("Are you sure you want to go back now?")
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = prepareIntent(getPreviousActivityClass());
-                        if (getPreviousActivityClass() == MainActivity.class) {
-                            intent.putExtra("previousData", (String) null);
+        if(activityName() == "auto") {
+            new AlertDialog.Builder(this)
+                    .setTitle("Stop Scouting")
+                    .setMessage("Are you sure you want to go back now?")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            saveAutoData = true;
+                            Intent intent = prepareIntent(getPreviousActivityClass());
+                            if (getPreviousActivityClass() == MainActivity.class) {
+                                intent.putExtra("previousData", (String) null);
+                            }
+                            startActivity(intent);
                         }
-                        startActivity(intent);
-                    }
-                })
-                .show();
+                    })
+                    .show();
+        }else if(activityName() == "tele"){
+            new AlertDialog.Builder(this)
+                    .setTitle("Save Data?")
+                    .setMessage("Do you want to save this data?")
+                    .setNegativeButton("No", null)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            saveAutoData = true;
+                            saveTeleData = true;
+                            Intent intent = prepareIntent(getPreviousActivityClass());
+                            if (getPreviousActivityClass() == MainActivity.class) {
+                                intent.putExtra("previousData", (String) null);
+                            }
+                            startActivity(intent);
+                        }
+                    })
+                    .show();
+        }
     }
 }

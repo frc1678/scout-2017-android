@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:id="@+id/cvPosition"
+        android:text="Position"
+        android:textSize="25sp"
+        android:padding="15dp"/>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:id="@+id/cvNumShots"
+        android:text="Shots"
+        android:textSize="25sp"
+        android:padding="15dp"/>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:id="@+id/cvTime"
+        android:text="Time"
+        android:textSize="25sp"
+        android:padding="15dp"/>
+
+    <ImageButton
+        android:layout_width="fill_parent"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_delete"
+        android:id="@+id/cvDelButton" />
+
+</LinearLayout>

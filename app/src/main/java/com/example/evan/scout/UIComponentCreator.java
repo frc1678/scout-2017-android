@@ -13,6 +13,7 @@ import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -28,6 +29,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
@@ -36,6 +39,9 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static android.content.Context.DEVICE_POLICY_SERVICE;
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 //class that creates all the ui components I need like togglebuttons, etc.  Also stores all buttons in list to be accessed later
 public class UIComponentCreator {
@@ -127,7 +133,6 @@ public class UIComponentCreator {
     }
 
     public static class UICounterCreator extends UIComponentCreator {
-        private int value;
         private String name;
         private Activity context;
         private int currentCounterComponent;
@@ -135,27 +140,31 @@ public class UIComponentCreator {
         public UICounterCreator(Activity context, List<String> componentNames) {
             super(context, componentNames);
             currentCounterComponent = 0;
-            value = 0;
             this.context = context;
             name = "";
         }
 
-        public RelativeLayout addCounter() {
+        public RelativeLayout addCounter(String counterFBname) {
             name = UICounterCreator.super.componentNames.get(currentCounterComponent);
             RelativeLayout counterLayout = (RelativeLayout) context.getLayoutInflater().inflate(R.layout.counter, null);
 
             TextView titleTV = (TextView) counterLayout.findViewById(R.id.counterTitle);
             titleTV.setText(name);
-            Log.e("counterTitle", titleTV.getText().toString());
 
             final TextView valueTV = (TextView) counterLayout.findViewById(R.id.value);
-            valueTV.setText(String.valueOf(value));
-            Log.e("counterValue", valueTV.getText().toString());
+            try {
+                if((DataActivity.saveAutoData && DataActivity.activityName.equals("auto")) || (DataActivity.saveTeleData && DataActivity.activityName.equals("tele"))) {
+                    valueTV.setText(DataManager.collectedData.getString(counterFBname));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
             Button minus = (Button) counterLayout.findViewById(R.id.minus);
             minus.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    int value = Integer.parseInt(valueTV.getText().toString());
                     if(value > 0){
                         value --;
                     }
@@ -168,6 +177,7 @@ public class UIComponentCreator {
             plus.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    int value = Integer.parseInt(valueTV.getText().toString());
                     value ++;
                     valueTV.setText(String.valueOf(value));
                 }
@@ -182,9 +192,7 @@ public class UIComponentCreator {
 
     //sub class specifically for creating defense buttons
     public static class UIButtonCreator extends UIComponentCreator {
-        private long startTime;
-        private long endTime;
-        private boolean didLiftOff;
+        double liftoffTime;
         private Activity context;
 
         public UIButtonCreator(Activity context, List<String> componentNames) {
@@ -193,75 +201,118 @@ public class UIComponentCreator {
         }
 
         public Button addButton(final ToggleButton button1, final ToggleButton button2) {
-            resetLiftOff();
             //add button to row
             final Button liftOffButton = getBasicButton(LinearLayout.LayoutParams.MATCH_PARENT, 0.4f);
             liftOffButton.setText("Ready For LiftOff");
             liftOffButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    button1.setChecked(false);
-                    button2.setChecked(false);
+                    try {
+                        if(DataManager.collectedData.getBoolean("didLiftoff") != true){
+                            button1.setChecked(false);
+                            button2.setChecked(false);
 
-                    //next get the time in milliseconds
-                    startTime = System.currentTimeMillis();
+                            //display custom dialog with big buttons
+                            final Dialog dialog = new Dialog(context);
+                            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                            RelativeLayout dialogLayout = (RelativeLayout) context.getLayoutInflater().inflate(R.layout.dialog, null);
+                            final TextView title = (TextView) dialogLayout.findViewById(R.id.dialogTitle);
+                            title.setText("Lift Off");
 
-                    //display custom dialog with big buttons
-                    final Dialog dialog = new Dialog(context);
-                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                    RelativeLayout dialogLayout = (RelativeLayout) context.getLayoutInflater().inflate(R.layout.dialog, null);
-                    TextView title = (TextView) dialogLayout.findViewById(R.id.dialogTitle);
-                    title.setText("Lift Off");
+                            final TextView liftoffTimeView = (TextView) dialogLayout.findViewById(R.id.liftoffTime);
+                            final CountDownTimer cdt = new CountDownTimer(135000, 100) {
+                                @Override
+                                public void onTick(long millisUntilFinished) {
+                                    double currentSeconds = (135000.0 - millisUntilFinished) / 1000;
+                                    liftoffTimeView.setText(String.valueOf(currentSeconds));
+                                }
 
-                    final TextView liftoffTimeView = (TextView) dialogLayout.findViewById(R.id.liftoffTime);
-                    final CountDownTimer cdt = new CountDownTimer(135000, 100) {
-                        @Override
-                        public void onTick(long millisUntilFinished) {
-                            double currentSeconds = (135000.0 - millisUntilFinished) / 1000;
-                            liftoffTimeView.setText(String.valueOf(currentSeconds));
+                                @Override
+                                public void onFinish() {
+
+                                }
+                            };
+
+                            Button success = (Button) dialogLayout.findViewById(R.id.successButton);
+                            success.getBackground().setColorFilter(Color.parseColor("#C8FFC8"), PorterDuff.Mode.MULTIPLY);
+                            success.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    cdt.cancel();
+
+                                    liftoffTime = Double.valueOf(liftoffTimeView.getText().toString());
+                                    Log.e("scrub", liftoffTime+"");
+
+                                    DataManager.addZeroTierJsonData("didLiftoff", true);
+                                    DataManager.addZeroTierJsonData("liftoffTime", liftoffTime);
+                                    //add to sd card
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            Button failure = (Button) dialogLayout.findViewById(R.id.failButton);
+                            failure.getBackground().setColorFilter(Color.parseColor("#FFC8C8"), PorterDuff.Mode.MULTIPLY);
+                            failure.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    cdt.cancel();
+                                    dialog.dismiss();
+                                }
+                            });
+                            dialog.setContentView(dialogLayout);
+                            dialog.show();
+                            cdt.start();
+                        }else if(DataManager.collectedData.getBoolean("didLiftoff") == true){
+                            LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+                            View liftOffRemoveView = layoutInflater.inflate(R.layout.dialog, null);
+                            try {
+                                if(DataActivity.saveTeleData && DataActivity.activityName.equals("tele")){
+                                    ((TextView) liftOffRemoveView.findViewById(R.id.liftoffTime)).setText(DataManager.collectedData.getDouble("liftoffTime")+"");
+                                }else {
+                                    ((TextView) liftOffRemoveView.findViewById(R.id.liftoffTime)).setText(String.valueOf(liftoffTime));
+                                }
+                            } catch(NullPointerException npe){
+                                ((TextView) liftOffRemoveView.findViewById(R.id.liftoffTime)).setText("0.0");
+                            }
+                            ((TextView) liftOffRemoveView.findViewById(R.id.liftoffTime)).setTextColor(Color.parseColor("#FF0000"));
+
+                            final Dialog dialog = new Dialog(context);
+                            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                            final TextView title = (TextView) liftOffRemoveView.findViewById(R.id.dialogTitle);
+                            title.setText("Undo Liftoff?");
+
+                            Button success = (Button) liftOffRemoveView.findViewById(R.id.successButton);
+                            success.setText("Cancel");
+                            success.getBackground().setColorFilter(Color.parseColor("#C8FFC8"), PorterDuff.Mode.MULTIPLY);
+                            success.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                            Button failure = (Button) liftOffRemoveView.findViewById(R.id.failButton);
+                            failure.setText("Remove");
+                            failure.getBackground().setColorFilter(Color.parseColor("#C8FFC8"), PorterDuff.Mode.MULTIPLY);
+                            failure.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    DataManager.addZeroTierJsonData("didLiftoff", false);
+                                    DataManager.addZeroTierJsonData("liftoffTime", 0);
+                                    dialog.cancel();
+                                }
+                            });
+
+                            dialog.setContentView(liftOffRemoveView);
+                            dialog.show();
                         }
-
-                        @Override
-                        public void onFinish() {
-
-                        }
-                    };
-
-                    Button success = (Button) dialogLayout.findViewById(R.id.successButton);
-                    success.getBackground().setColorFilter(Color.parseColor("#C8FFC8"), PorterDuff.Mode.MULTIPLY);
-                    success.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            cdt.cancel();
-                            endTime = System.currentTimeMillis();
-                            float totalTime = (endTime - startTime)/1000;
-                            DataManager.addZeroTierJsonData("didLiftoff", true);
-                            DataManager.addZeroTierJsonData("liftoffTime", totalTime);
-                            //add to sd card
-                            dialog.dismiss();
-                        }
-                    });
-
-                    Button failure = (Button) dialogLayout.findViewById(R.id.failButton);
-                    failure.getBackground().setColorFilter(Color.parseColor("#FFC8C8"), PorterDuff.Mode.MULTIPLY);
-                    failure.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            cdt.cancel();
-                            dialog.dismiss();
-                        }
-                    });
-                    dialog.setContentView(dialogLayout);
-                    dialog.show();
-                    cdt.start();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 
             return liftOffButton;
-        }
-        public void resetLiftOff(){
-            DataManager.addZeroTierJsonData("didLiftoff", false);
-            DataManager.addZeroTierJsonData("liftoffTime", 0);
         }
     }
 
@@ -292,6 +343,7 @@ public class UIComponentCreator {
                     titleTV.setText("Which Lift?");
 
                     Button liftOneButton = (Button) dialogLayout.findViewById(R.id.liftOneButton);
+                    liftOneButton.setText("Lift 1 ("+numGearsLiftOne+")");
                     liftOneButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -301,6 +353,7 @@ public class UIComponentCreator {
                     });
 
                     Button liftTwoButton = (Button) dialogLayout.findViewById(R.id.liftTwoButton);
+                    liftTwoButton.setText("Lift 2 ("+numGearsLiftTwo+")");
                     liftTwoButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -310,6 +363,7 @@ public class UIComponentCreator {
                     });
 
                     Button liftThreeButton = (Button) dialogLayout.findViewById(R.id.liftThreeButton);
+                    liftThreeButton.setText("Lift 3 ("+numGearsLiftThree+")");
                     liftThreeButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -342,29 +396,39 @@ public class UIComponentCreator {
                     titleTV.setText("Which Lift?");
 
                     Button liftOneButton = (Button) dialogLayout.findViewById(R.id.liftOneButton);
+                    liftOneButton.setText("Lift 1 ("+numGearsLiftOne+")");
                     liftOneButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            numGearsLiftOne -= 1;
-                            dialog.dismiss();
+                            if(numGearsLiftOne > 0){
+                                numGearsLiftOne -= 1;
+                                dialog.dismiss();
+                            }
                         }
                     });
 
                     Button liftTwoButton = (Button) dialogLayout.findViewById(R.id.liftTwoButton);
+                    liftTwoButton.setText("Lift 2 ("+numGearsLiftTwo+")");
                     liftTwoButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            numGearsLiftTwo -= 1;
-                            dialog.dismiss();
+                            if(numGearsLiftTwo > 0){
+                                numGearsLiftTwo -= 1;
+                                dialog.dismiss();
+                            }
+
                         }
                     });
 
                     Button liftThreeButton = (Button) dialogLayout.findViewById(R.id.liftThreeButton);
+                    liftThreeButton.setText("Lift 3 ("+numGearsLiftThree+")");
                     liftThreeButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            numGearsLiftThree -= 1;
-                            dialog.dismiss();
+                            if(numGearsLiftThree > 0){
+                                numGearsLiftThree -= 1;
+                                dialog.dismiss();
+                            }
                         }
                     });
 
@@ -390,6 +454,9 @@ public class UIComponentCreator {
         public int getNumGearsLiftOne() {   return numGearsLiftOne;}
         public int getNumGearsLiftTwo() {   return numGearsLiftTwo;}
         public int getNumGearsLiftThree() {   return numGearsLiftThree;}
+        public void setNumGearsLiftOne(int i) {   numGearsLiftOne = i;}
+        public void setNumGearsLiftTwo(int i) {   numGearsLiftTwo = i;}
+        public void setNumGearsLiftThree(int i) {   numGearsLiftThree = i;}
     }
 
     public static class UIShotCreator extends UIComponentCreator {
@@ -397,10 +464,12 @@ public class UIComponentCreator {
         private String position;
         private long startTime;
         private long endTime;
-        private float totalTime;
+        private long totalTime;
         private String name;
         private Activity context;
         private int currentShotComponent;
+        ArrayList<HashMap<String, Object>> highShotDataList = new ArrayList<HashMap<String, Object>>();
+        ArrayList<HashMap<String, Object>> lowShotDataList = new ArrayList<HashMap<String, Object>>();
 
         public UIShotCreator(Activity context, List<String> componentNames) {
             super(context, componentNames);
@@ -411,18 +480,28 @@ public class UIComponentCreator {
         }
         public Button addButton(final String shotFBname) {
             name = UIShotCreator.super.componentNames.get(currentShotComponent);
+            int index1 = name.indexOf("t")+1;
+            int index2 = name.indexOf("S");
+            String buttonName = name.substring(0, index1);
+            final String dialogName = name.substring(0,1).toUpperCase() + name.substring(1, index2) + " Shooting";
+            final String titleName = name.substring(0,1).toUpperCase() + name.substring(1, index2) + " Shots";
+            final String height = name.substring(0,index2);
+            final String dataName = name;
+
             final Button shotButton = getBasicButton(LinearLayout.LayoutParams.MATCH_PARENT, 0.7f);
-            Log.e("CurrentComponent",String.valueOf(currentShotComponent));
-            shotButton.setText(super.componentNames.get(currentShotComponent));
+            shotButton.setText(buttonName);
             shotButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    shotsMade = 0;
                     startTime = System.currentTimeMillis();
+                    final HashMap<String,Object> dataSpace = new HashMap<String, Object>();
+
                     final Dialog dialog = new Dialog(context);
                     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                     RelativeLayout dialogLayout = (RelativeLayout) context.getLayoutInflater().inflate(R.layout.shot_dialog, null);
                     TextView titleTV = (TextView) dialogLayout.findViewById(R.id.dialogTitle);
-                    titleTV.setText(name);
+                    titleTV.setText(dialogName);
 
                     final TextView numberView = (TextView) dialogLayout.findViewById(R.id.numberView);
 
@@ -430,7 +509,11 @@ public class UIComponentCreator {
                     minusTenButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            shotsMade -= 10;
+                            if(shotsMade >= 10){
+                                shotsMade -= 10;
+                            }else{
+                                shotsMade = 0;
+                            }
                             numberView.setText(String.valueOf(shotsMade));
                         }
                     });
@@ -439,7 +522,9 @@ public class UIComponentCreator {
                     minusButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            shotsMade -= 1;
+                            if(shotsMade > 0){
+                                shotsMade -= 1;
+                            }
                             numberView.setText(String.valueOf(shotsMade));
                         }
                     });
@@ -462,7 +547,6 @@ public class UIComponentCreator {
                         }
                     });
 
-                    //TODO make them not multi-selectable
                     RadioButton keyRadioButton = (RadioButton) dialogLayout.findViewById(R.id.keyRadio);
                     keyRadioButton.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -501,7 +585,7 @@ public class UIComponentCreator {
                         public void onClick(View v) {
                             if(position != null){
                                 endTime = System.currentTimeMillis();
-                                totalTime = (startTime - endTime)/1000;
+                                totalTime = endTime - startTime;
 
                                 int i = 0;
                                 List<String> shotKeys = Arrays.asList("numShots", "position", "time");
@@ -509,18 +593,49 @@ public class UIComponentCreator {
                                 shotValues.clear();
                                 shotValues.add(shotsMade);
                                 shotValues.add(position);
-                                shotValues.add(totalTime);
-                                switch(name) {
-                                    case "highShotAuto" : i = Constants.highShotAuto; break;
-                                    case "lowShotAuto" : i = Constants.lowShotAuto; break;
-                                    case "highShotTele" : i = Constants.highShotTele; break;
-                                    case "lowShotTele" : i = Constants.lowShotTele; break;
+                                shotValues.add(totalTime/1000);
+                                switch(dataName) {
+                                    case "highShotAuto" :
+                                        i = Constants.highShotAuto;
+                                        Constants.highShotAuto = i+1;
+                                        break;
+                                    case "lowShotAuto" :
+                                        i = Constants.lowShotAuto;
+                                        Constants.lowShotAuto = i+1;
+                                        break;
+                                    case "highShotTele" :
+                                        i = Constants.highShotTele;
+                                        Constants.highShotTele = i+1;
+                                        break;
+                                    case "lowShotTele" :
+                                        i = Constants.lowShotTele;
+                                        Constants.lowShotTele = i+1;
+                                        break;
                                 }
-                                DataManager.addOneTierJsonData(true, i+"", shotKeys, shotValues);
-                                DataManager.addZeroTierJsonData(shotFBname,DataManager.sideData);
+
+                                if(DataManager.collectedData.has(shotFBname)){
+                                    try {
+                                        DataManager.sideData = DataManager.collectedData.getJSONObject(shotFBname);
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                    DataManager.addOneTierJsonData(true, i+"", shotKeys, shotValues);
+                                    DataManager.addZeroTierJsonData(shotFBname,DataManager.sideData);
+                                }else{
+                                    DataManager.sideData = new JSONObject();
+                                    DataManager.addOneTierJsonData(true, i+"", shotKeys, shotValues);
+                                    DataManager.addZeroTierJsonData(shotFBname,DataManager.sideData);
+                                }
+
+                                dataSpace.put(shotKeys.get(0), shotValues.get(0));
+                                dataSpace.put(shotKeys.get(1), shotValues.get(1));
+                                dataSpace.put(shotKeys.get(2), shotValues.get(2));
+                                if(height.equals("high")){    highShotDataList.add(dataSpace);}
+                                else if(height.equals("low")){   lowShotDataList.add(dataSpace);}
+
                                 dialog.dismiss();
                             }else{
-                                //TODO make a toast
+                                Toast.makeText(context, "Please put shot location", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
@@ -529,13 +644,79 @@ public class UIComponentCreator {
                     failure.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                           //Firebase stuff
                             dialog.dismiss();
                         }
                     });
 
                     dialog.setContentView(dialogLayout);
                     dialog.show();
+                }
+            });
+            shotButton.setOnLongClickListener(new View.OnLongClickListener() {
+
+                public boolean onLongClick(View v){
+                    if((DataActivity.saveAutoData && DataActivity.activityName.equals("auto")) || (DataActivity.saveTeleData && DataActivity.activityName.equals("tele"))){
+                        try {
+                            for(int i = 0; i < DataManager.collectedData.getJSONObject(shotFBname).length();i++){
+                                JSONObject tempContainer = DataManager.collectedData.getJSONObject(shotFBname).getJSONObject(i+"");
+                                final HashMap<String,Object> dataSpace = new HashMap<String, Object>();
+                                dataSpace.put("numShots", tempContainer.getInt("numShots"));
+                                dataSpace.put("position", tempContainer.getString("position"));
+                                dataSpace.put("time", tempContainer.getLong("time"));
+                                if(height.equals("high")){
+                                    highShotDataList.add(dataSpace);
+                                }else if(height.equals("low")){
+                                    lowShotDataList.add(dataSpace);
+                                }
+                            }
+                        } catch (JSONException e){
+                                e.printStackTrace();
+                        }
+                    }
+
+                    int latest = 0;
+
+                    if(height.equals("high")){latest = highShotDataList.size();Log.e("sizeLatest", latest+"");}
+                    else if(height.equals("low")){latest = lowShotDataList.size();}
+
+                    if(latest > 0){
+                        View shotsHistory = ((LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE)).inflate(R.layout.shots_history_dialog, null);
+                        ListView shotList = (ListView) shotsHistory.findViewById(R.id.shotsListView);
+
+                        AlertDialog.Builder shotBuilder = new AlertDialog.Builder(context);
+                        shotBuilder.setView(shotsHistory);
+                        shotBuilder.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+                        shotBuilder.setTitle(titleName);
+                        shotBuilder.setCancelable(false);
+                        AlertDialog shotDialog = shotBuilder.create();
+
+                        if(height.equals("high")){
+                            shotList.setAdapter(new ShotListAdapter(context, highShotDataList, shotDialog, titleName, new ShotListAdapter.ListModificationListener() {
+                                @Override
+                                public void onListChanged(ArrayList<HashMap<String, Object>> returnList) {
+                                    highShotDataList = returnList;
+                                }
+                            }));
+                        }
+                        else if(height.equals("low")){
+                            shotList.setAdapter(new ShotListAdapter(context, lowShotDataList, shotDialog, titleName, new ShotListAdapter.ListModificationListener() {
+                                @Override
+                                public void onListChanged(ArrayList<HashMap<String, Object>> returnList) {
+                                    lowShotDataList = returnList;
+                                }
+                            }));
+                        }
+
+                        shotDialog.show();
+                    } else {
+                        Toast.makeText(context, "No Entries for "+titleName, Toast.LENGTH_SHORT).show();
+                    }
+                    return true;
                 }
             });
             currentShotComponent++;
